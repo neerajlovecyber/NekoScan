@@ -3,20 +3,16 @@
 import * as React from "react"
 import {
   ColumnDef,
-  ColumnFiltersState,
   SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +48,23 @@ const data: Payment[] = [
     amount: 837,
     status: "processing",
     email: "Monserrat44@gmail.com",
+  }, {
+    id: "m5gr84i9",
+    amount: 316,
+    status: "success",
+    email: "ken99@yahoo.com",
+  },
+  {
+    id: "3u1reuv4",
+    amount: 242,
+    status: "success",
+    email: "Abe45@gmail.com",
+  },
+  {
+    id: "derv1ws0",
+    amount: 837,
+    status: "processing",
+    email: "Monserrat44@gmail.com",
   }
 ]
 
@@ -63,28 +76,6 @@ export type Payment = {
 }
 
 export const columns: ColumnDef<Payment>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: "status",
     header: "Status",
@@ -124,7 +115,6 @@ export const columns: ColumnDef<Payment>[] = [
   },
   {
     id: "actions",
-    enableHiding: false,
     cell: ({ row }) => {
       const payment = row.original
 
@@ -155,36 +145,46 @@ export const columns: ColumnDef<Payment>[] = [
 
 export function ActiveScans() {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
 
   const table = useReactTable({
     data,
     columns,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
     },
   })
 
+  React.useEffect(() => {
+    table.setPageSize(5) // Force page size to 5 on load
+  }, [table])
+
   return (
     <div className="w-full px-4">
-      <h2 className=" text-xl font-bold py-3">Active Scans</h2>
-  
+      <div className="flex justify-between items-center py-3">
+        <h2 className="text-xl font-bold">Active Scans</h2>
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -208,10 +208,7 @@ export function ActiveScans() {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
@@ -224,40 +221,13 @@ export function ActiveScans() {
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
       </div>
     </div>
   )
