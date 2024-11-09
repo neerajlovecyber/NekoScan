@@ -10,7 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -30,116 +30,90 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-const data: Payment[] = [
+// Define sample scan data
+const data: Scan[] = [
   {
-    id: "m5gr84i9",
-    amount: 316,
-    status: "success",
-    email: "ken99@yahoo.com",
+    id: "1",
+    scanName: "Network Scan",
+    target: "192.168.1.1",
+    profile: "Aggressive",
+    timeStarted: "2024-11-08 12:30 PM",
+    completion: "25%",
   },
   {
-    id: "3u1reuv4",
-    amount: 242,
-    status: "success",
-    email: "Abe45@gmail.com",
+    id: "2",
+    scanName: "Quick Scan",
+    target: "192.168.1.2",
+    profile: "Quick",
+    timeStarted: "2024-11-08 12:45 PM",
+    completion: "50%",
   },
   {
-    id: "derv1ws0",
-    amount: 837,
-    status: "processing",
-    email: "Monserrat44@gmail.com",
-  }, {
-    id: "m5gr84i9",
-    amount: 316,
-    status: "success",
-    email: "ken99@yahoo.com",
+    id: "3",
+    scanName: "Full Scan",
+    target: "192.168.1.3",
+    profile: "Intense",
+    timeStarted: "2024-11-08 1:00 PM",
+    completion: "10%",
   },
   {
-    id: "3u1reuv4",
-    amount: 242,
-    status: "success",
-    email: "Abe45@gmail.com",
+    id: "4",
+    scanName: "Vulnerability Scan",
+    target: "192.168.1.4",
+    profile: "Vuln",
+    timeStarted: "2024-11-08 1:15 PM",
+    completion: "75%",
   },
   {
-    id: "derv1ws0",
-    amount: 837,
-    status: "processing",
-    email: "Monserrat44@gmail.com",
-  }
+    id: "5",
+    scanName: "Custom Scan",
+    target: "192.168.1.5",
+    profile: "Custom",
+    timeStarted: "2024-11-08 1:30 PM",
+    completion: "40%",
+  },
 ]
 
-export type Payment = {
+export type Scan = {
   id: string
-  amount: number
-  status: "pending" | "processing" | "success" | "failed"
-  email: string
+  scanName: string
+  target: string
+  profile: string
+  timeStarted: string
+  completion: string
 }
 
-export const columns: ColumnDef<Payment>[] = [
+export const columns: ColumnDef<Scan>[] = [
   {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("status")}</div>
+    accessorKey: "scanName",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Scan Name
+        <ArrowUpDown />
+      </Button>
     ),
   },
   {
-    accessorKey: "email",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Email
-          <ArrowUpDown />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    accessorKey: "target",
+    header: "Target",
   },
   {
-    accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"))
-
-      // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount)
-
-      return <div className="text-right font-medium">{formatted}</div>
-    },
+    accessorKey: "profile",
+    header: "Profile",
   },
   {
-    id: "actions",
-    cell: ({ row }) => {
-      const payment = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
+    accessorKey: "timeStarted",
+    header: "Time Started",
+  },
+  {
+    accessorKey: "completion",
+    header: "Completion",
+    cell: ({ row }) => (
+      <div className=" font-medium">{row.getValue("completion")}</div>
+    ),
   },
 ]
 
@@ -156,17 +130,16 @@ export function ActiveScans() {
     state: {
       sorting,
     },
+    initialState: {
+      pagination: { pageSize: 5 }, // Set to show only 5 rows per page
+    },
   })
-
-  React.useEffect(() => {
-    table.setPageSize(5) // Force page size to 5 on load
-  }, [table])
 
   return (
     <div className="w-full px-4">
-      <div className="flex justify-between items-center py-3">
+      <div className="flex items-center justify-between py-3">
         <h2 className="text-xl font-bold">Active Scans</h2>
-        <div className="flex space-x-2">
+        <div className="space-x-2">
           <Button
             variant="outline"
             size="sm"
@@ -185,23 +158,22 @@ export function ActiveScans() {
           </Button>
         </div>
       </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -211,10 +183,7 @@ export function ActiveScans() {
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -222,7 +191,7 @@ export function ActiveScans() {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  No active scans.
                 </TableCell>
               </TableRow>
             )}
