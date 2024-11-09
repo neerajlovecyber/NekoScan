@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 "use client"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, Scan, Search } from "lucide-react"
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import {
@@ -53,7 +53,7 @@ export function NewScan() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">New Scan</Button>
+        <Button variant="outline"><Search/> New Scan</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
