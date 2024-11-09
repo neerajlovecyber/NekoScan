@@ -1,25 +1,10 @@
 import * as React from "react"
-import {
-  BookOpen,
-  Bot,
-
-  Settings2,
-  SquareTerminal,
-} from "lucide-react"
-
+import {Bot,Settings2,SquareTerminal,bubn } from "lucide-react"
 import { NavMain } from "@/components/nav-main"
-
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
-} from "@/components/ui/sidebar"
-
-// This is sample data.
+import {Sidebar,SidebarContent,SidebarFooter,SidebarHeader,SidebarRail,} from "@/components/ui/sidebar"
+import { CatIcon } from "lucide-react"
 const data = {
   user: {
     name: "shadcn",
@@ -28,30 +13,24 @@ const data = {
   },
   teams: [
     {
-      logo: SquareTerminal,
+      logo: CatIcon
     },
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Home",
       url: "#",
       icon: SquareTerminal,
       isActive: true,
       
     },
     {
-      title: "Models",
+      title: "Profiles",
       url: "#",
       icon: Bot,
       
     },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      
-     
-    },
+    
     {
       title: "Settings",
       url: "#",
