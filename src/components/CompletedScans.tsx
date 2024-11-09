@@ -256,7 +256,7 @@ export function CompletedScans() {
   })
 
   return (
-    <div className="w-full px-4">
+    <div className="w-full px-3 pt-3">
       <h2 className=" text-xl font-bold">Completed Scans</h2>
       <div className="flex items-center py-4">
         <Input

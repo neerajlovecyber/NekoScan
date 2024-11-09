@@ -129,8 +129,8 @@ export function ActiveScans() {
   })
 
   return (
-    <div className="w-full px-4">
-      <div className="flex items-center justify-between py-3">
+    <div className="w-full p-3 ">
+      <div className="flex items-center justify-between pb-3 ">
         <h2 className="text-xl font-bold">Active Scans</h2>
         <div className="space-x-2">
           <Button

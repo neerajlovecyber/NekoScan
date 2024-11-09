@@ -22,6 +22,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
+import { toast } from "sonner"
 import {
   Popover,
   PopoverContent,
@@ -119,7 +120,21 @@ export function NewScan() {
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit">Start Scan</Button>
+          
+          <Button
+      variant="outline"
+      onClick={() =>
+        toast("Scan has been Initalized", {
+          description: "Sunday, December 03, 2023 at 9:00 AM",
+          action: {
+            label: "Cancel Scan",
+            onClick: () => console.log("Undo"),
+          },
+        })
+      }
+    >
+      Start Scan
+    </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
