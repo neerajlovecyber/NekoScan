@@ -1,23 +1,13 @@
 
 import "./App.css";
 import { AppSidebar } from "@/components/app-sidebar"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+import {Breadcrumb,BreadcrumbItem,BreadcrumbLink, BreadcrumbList,BreadcrumbPage,BreadcrumbSeparator,} from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarInset,SidebarProvider, SidebarTrigger,} from "@/components/ui/sidebar";
 import { NewScan } from "./components/NewScan";
 import { ActiveScans } from "./components/RunningScans";
 import { CompletedScans } from "./components/CompletedScans";
+import { ModeToggle } from "./components/mode-toggle";
 
 function App() {
   
@@ -26,7 +16,7 @@ function App() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 justify-between pr-4">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
@@ -43,7 +33,9 @@ function App() {
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
+           
           </div>
+          <ModeToggle />
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
