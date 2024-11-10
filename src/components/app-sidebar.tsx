@@ -1,5 +1,5 @@
 import * as React from "react"
-import {Bot,Settings2,SquareTerminal,bubn } from "lucide-react"
+import {Bot,Settings2,SquareTerminal} from "lucide-react"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
