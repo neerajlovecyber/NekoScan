@@ -25,6 +25,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -34,7 +45,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DeleteAlertDialog } from "./DeleteAlert";
 
 export type ScanData = {
   id: string;
@@ -148,6 +158,22 @@ export const columns: ColumnDef<ScanData>[] = [
     id: "actions",
     cell: ({ row }) => {
       const scan = row.original;
+      const [isDeleting, setIsDeleting] = React.useState(false);
+
+      const handleDeleteScan = async () => {
+        try {
+          setIsDeleting(true);
+          // Add your delete API call here
+          console.log(`Deleting scan ${scan.id}`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+          // Add success notification or state update
+        } catch (error) {
+          // Add error handling
+          console.error('Failed to delete scan:', error);
+        } finally {
+          setIsDeleting(false);
+        }
+      };
 
       return (
         <DropdownMenu>
@@ -159,12 +185,40 @@ export const columns: ColumnDef<ScanData>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => console.log(`Viewing report for ${scan.id}`)}>
+            <DropdownMenuItem 
+              onClick={() => console.log(`Viewing report for ${scan.id}`)}
+            >
               View Report
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => console.log(`Deleting scan ${scan.id}`)}>
-              Delete Scan 
-            </DropdownMenuItem>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem 
+                  className="text-red-600"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  Delete Scan
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the scan
+                    "{scan.scanName}" and remove its data from our servers.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteScan}
+                    className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </DropdownMenuContent>
         </DropdownMenu>
       );
