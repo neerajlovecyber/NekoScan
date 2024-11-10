@@ -10,9 +10,16 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 import {
   Table,
@@ -23,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-// Define sample scan data
+// Data definition remains the same
 const data: Scan[] = [
   {
     id: "1",
@@ -31,7 +38,7 @@ const data: Scan[] = [
     target: "192.168.1.1",
     profile: "Aggressive",
     timeStarted: "2024-11-08 12:30 PM",
-    completion: "25%",
+    Progress: "25%",
   },
   {
     id: "2",
@@ -39,7 +46,7 @@ const data: Scan[] = [
     target: "192.168.1.2",
     profile: "Quick",
     timeStarted: "2024-11-08 12:45 PM",
-    completion: "50%",
+    Progress: "50%",
   },
   {
     id: "3",
@@ -47,7 +54,7 @@ const data: Scan[] = [
     target: "192.168.1.3",
     profile: "Intense",
     timeStarted: "2024-11-08 1:00 PM",
-    completion: "10%",
+    Progress: "10%",
   },
   {
     id: "4",
@@ -55,15 +62,7 @@ const data: Scan[] = [
     target: "192.168.1.4",
     profile: "Vuln",
     timeStarted: "2024-11-08 1:15 PM",
-    completion: "75%",
-  },
-  {
-    id: "5",
-    scanName: "Custom Scan",
-    target: "192.168.1.5",
-    profile: "Custom",
-    timeStarted: "2024-11-08 1:30 PM",
-    completion: "40%",
+    Progress: "75%",
   },
 ]
 
@@ -73,7 +72,7 @@ export type Scan = {
   target: string
   profile: string
   timeStarted: string
-  completion: string
+  Progress: string
 }
 
 export const columns: ColumnDef<Scan>[] = [
@@ -85,28 +84,99 @@ export const columns: ColumnDef<Scan>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         Scan Name
-        <ArrowUpDown />
+        <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
   },
   {
     accessorKey: "target",
-    header: "Target",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Target
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
   },
   {
     accessorKey: "profile",
-    header: "Profile",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Profile
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
   },
   {
     accessorKey: "timeStarted",
-    header: "Time Started",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Time Started
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
   },
   {
-    accessorKey: "completion",
-    header: "Completion",
-    cell: ({ row }) => (
-      <div className=" font-medium">{row.getValue("completion")}</div>
+    accessorKey: "Progress",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Progress
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
     ),
+    cell: ({ row }) => (
+      <div className="font-medium">{row.getValue("Progress")}</div>
+    ),
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const scan = row.original
+
+      const handleStopScan = (scanId: string) => {
+        console.log(`Stopping scan ${scanId}`)
+        // Add your stop scan logic here
+      }
+
+      const handleViewLogs = (scanId: string) => {
+        console.log(`Viewing logs for scan ${scanId}`)
+        // Add your view logs logic here
+      }
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => handleStopScan(scan.id)}
+              className="text-red-600"
+            >
+              Stop Scan
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleViewLogs(scan.id)}>
+              View Live Logs
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
   },
 ]
 
@@ -124,13 +194,13 @@ export function ActiveScans() {
       sorting,
     },
     initialState: {
-      pagination: { pageSize: 5 }, // Set to show only 5 rows per page
+      pagination: { pageSize: 5 },
     },
   })
 
   return (
-    <div className="w-full p-3 ">
-      <div className="flex items-center justify-between pb-3 ">
+    <div className="w-full p-3">
+      <div className="flex items-center justify-between pb-3">
         <h2 className="text-xl font-bold">Active Scans</h2>
         <div className="space-x-2">
           <Button
