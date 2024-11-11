@@ -1,0 +1,32 @@
+language-bash {
+    color: #c5c8c6;
+    background-color: #272822;
+  }
+  
+  .language-bash .hljs-built_in {
+    color: #f8f8f2;
+  }
+  
+  .language-bash .hljs-keyword {
+    color: #f92672;
+  }
+  
+  .language-bash .hljs-selector-tag {
+    color: #f92672;
+  }
+  
+  .language-bash .hljs-string {
+    color: #a6e22e;
+  }
+  
+  .language-bash .hljs-comment {
+    color: #75715e;
+  }
+  
+  .language-bash .hljs-number {
+    color: #66d9ef;
+  }
+  
+  .language-bash .hljs-symbol {
+    color: #f8f8f2;
+  }

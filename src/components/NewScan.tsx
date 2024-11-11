@@ -2,19 +2,18 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+("use client");
+import { Check, ChevronsUpDown, CommandIcon, Search } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import hljs from "highlight.js";
-// Import a highlight.js theme
 
 const profiles = [
   { value: "-T4", label: "Fast Scan" },
   { value: "-T2", label: "Slow Scan" },
-  { value: "-T5 -A", label: "Intensive Scan" },
+  { value: "-T5 -A  -T5 -A -T5 -A ", label: "Intensive Scan" },
   { value: "-sS", label: "Full TCP scan" },
 ];
 
@@ -25,10 +24,6 @@ export function NewScan() {
 
   // Generate command based on profile and target
   const command = `nmap ${value} ${target}`;
-
-  React.useEffect(() => {
-    hljs.highlightAll(); // Apply syntax highlighting to all code blocks
-  }, [command]); // Re-run whenever the command changes
 
   return (
     <Dialog>
@@ -41,7 +36,8 @@ export function NewScan() {
         <DialogHeader>
           <DialogTitle>Create a new scan</DialogTitle>
           <DialogDescription>
-            Make changes to your Scan Settings here. Click Start Scanning when you're done.
+            Make changes to your Scan Settings here. Click Start Scanning when
+            you're done.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -121,12 +117,11 @@ export function NewScan() {
           </div>
           {/* Display the command to be executed */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Command</Label>
-            <div className="bg-gray-800 p-2 rounded col-span-3">
-              {/* Apply hljs styling */}
-              <pre>
-                <code className="language-actionscript">{command}</code>
-              </pre>
+            <Label className="text-right">
+              Command
+            </Label>
+            <div className="bg-gray-800 p-2 rounded text-white col-span-3">
+              <code>{command}</code>
             </div>
           </div>
         </div>
