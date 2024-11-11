@@ -29,7 +29,10 @@ import {
 } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
-
+import {
+  Collapsible,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 export function NavUser() {  // Removed user prop since we're using store data
   const navigate = useNavigate();
 

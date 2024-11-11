@@ -1,5 +1,5 @@
 
-
+// Settings.tsx
 export function Settings() {
   return (
     <div className="flex h-screen w-full items-center justify-center">
@@ -7,5 +7,3 @@ export function Settings() {
     </div>
   );
 }
-
-export default Settings;

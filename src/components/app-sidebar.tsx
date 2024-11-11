@@ -1,10 +1,11 @@
 import * as React from "react"
-import {Bot,Settings2,SquareTerminal} from "lucide-react"
-import { NavMain } from "@/components/nav-main"
+import { Bot, Settings2, SquareTerminal } from "lucide-react"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
-import {Sidebar,SidebarContent,SidebarFooter,SidebarHeader,SidebarRail,} from "@/components/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
+import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible"  // Correctly imported Collapsible components
 import { CatIcon } from "lucide-react"
+
 const data = {
   user: {
     name: "shadcn",
@@ -13,7 +14,7 @@ const data = {
   },
   teams: [
     {
-      logo: CatIcon
+      logo: CatIcon,
     },
   ],
   navMain: [
@@ -22,23 +23,18 @@ const data = {
       url: "#",
       icon: SquareTerminal,
       isActive: true,
-      
     },
     {
       title: "Profiles",
       url: "#",
       icon: Bot,
-      
     },
-    
     {
       title: "Settings",
       url: "#",
       icon: Settings2,
-     
     },
   ],
-  
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -48,8 +44,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        
+        <SidebarGroup>
+          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+          <SidebarMenu>
+            {data.navMain.map((item) => (
+              <Collapsible
+                key={item.title}
+                asChild
+                defaultOpen={item.isActive}
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip={item.title}>
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                </SidebarMenuItem>
+              </Collapsible>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
