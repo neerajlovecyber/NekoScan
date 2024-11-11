@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+// Login_01.tsx
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,50 +12,70 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth"; // Import GitHub login methods
-import { auth } from "@/firebaseConfig"; // Import your Firebase configuration
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth";
+import { auth } from "@/firebaseConfig";
+import { useAuthStore } from "@/store/useAuthStore";
 
-export function Login_01({ onLogin, onContinueAsGuest }: { onLogin: () => void, onContinueAsGuest: () => void }) {
+export function Login_01() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const navigate = useNavigate();
+  const { login, continueAsGuest } = useAuthStore();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      onLogin(); // Call onLogin callback passed from parent component
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      // Get user email and photo URL from Firebase auth result
+      const userEmail = result.user.email || '';
+      const userImage = result.user.photoURL || '';
+      
+      // Update Zustand store
+      login(userEmail, userImage);
+      navigate("/");
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  // Google login handler
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log("Logged in with Google:", user);
-      onLogin();
-      navigate("/") // Call onLogin callback after successful login
+      // Get user email and photo URL from Firebase auth result
+      const userEmail = result.user.email || '';
+      const userImage = result.user.photoURL || '';
+      
+      // Update Zustand store
+      login(userEmail, userImage);
+      navigate("/");
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  // GitHub login handler
   const handleGitHubLogin = async () => {
     const provider = new GithubAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log("Logged in with GitHub:", user);
-      onLogin(); // Call onLogin callback after successful login
+      // Get user email and photo URL from Firebase auth result
+      const userEmail = result.user.email || '';
+      const userImage = result.user.photoURL || '';
+      
+      // Update Zustand store
+      login(userEmail, userImage);
+      navigate("/");
     } catch (err: any) {
-      setError(err.message); // Display error if login fails
+      setError(err.message);
     }
+  };
+
+  const handleContinueAsGuest = () => {
+    continueAsGuest();
+    navigate("/");
   };
 
   return (
@@ -68,7 +89,6 @@ export function Login_01({ onLogin, onContinueAsGuest }: { onLogin: () => void, 
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid gap-4">
-            {/* Email Input */}
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -81,7 +101,6 @@ export function Login_01({ onLogin, onContinueAsGuest }: { onLogin: () => void, 
               />
             </div>
 
-            {/* Password Input */}
             <div className="grid gap-2">
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
@@ -119,30 +138,36 @@ export function Login_01({ onLogin, onContinueAsGuest }: { onLogin: () => void, 
               </div>
             </div>
 
-            {/* Error message display */}
             {error && (
               <div className="text-red-500 text-sm mt-2">
                 {error}
               </div>
             )}
 
-            {/* Submit Button */}
             <Button type="submit" className="w-full">
               Login
             </Button>
 
-            {/* Google Login Button */}
+            <div className="relative my-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
             <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
               Login with Google
             </Button>
 
-            {/* GitHub Login Button */}
             <Button variant="outline" className="w-full" onClick={handleGitHubLogin}>
               Login with GitHub
             </Button>
           </form>
 
-          {/* Sign up and Continue as Guest Links */}
           <div className="mt-4 text-center text-sm">
             Don't have an account?{" "}
             <Link to="/signup" className="underline">Sign up</Link>
@@ -151,7 +176,7 @@ export function Login_01({ onLogin, onContinueAsGuest }: { onLogin: () => void, 
           <div className="mt-4 text-center">
             <Button
               variant="link"
-              onClick={onContinueAsGuest} // Calls onContinueAsGuest function
+              onClick={handleContinueAsGuest}
             >
               Continue without login
             </Button>

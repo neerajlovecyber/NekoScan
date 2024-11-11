@@ -1,3 +1,4 @@
+// SignUp.tsx
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
@@ -11,9 +12,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth"; 
-import { auth } from "@/firebaseConfig"; 
-import { useAuthStore } from "@/store/useAuthStore"; // Import Zustand store
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth";
+import { auth } from "@/firebaseConfig";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,43 +22,37 @@ export function SignUp() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const navigate = useNavigate(); // Hook for navigation
-  const login = useAuthStore.getState().login; // Access Zustand's login method
+  const navigate = useNavigate();
+  const login = useAuthStore(state => state.login);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      login(); // Mark the user as logged in using Zustand
-      navigate("/"); // Navigate to the dashboard or home page
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      login(result.user.email || '', result.user.photoURL || '');
+      navigate("/");
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  // Google login handler
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log("Logged in with Google:", user);
-      login(); // Mark the user as logged in using Zustand
-      navigate("/"); // Navigate to the dashboard
+      login(result.user.email || '', result.user.photoURL || '');
+      navigate("/");
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  // GitHub login handler
   const handleGitHubLogin = async () => {
     const provider = new GithubAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log("Logged in with GitHub:", user);
-      login(); // Mark the user as logged in using Zustand
-      navigate("/dashboard"); // Navigate to the dashboard
+      login(result.user.email || '', result.user.photoURL || '');
+      navigate("/");
     } catch (err: any) {
       setError(err.message);
     }
@@ -74,7 +69,6 @@ export function SignUp() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="grid gap-4">
-            {/* Email Input */}
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -87,7 +81,6 @@ export function SignUp() {
               />
             </div>
 
-            {/* Password Input */}
             <div className="grid gap-2">
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
@@ -119,30 +112,25 @@ export function SignUp() {
               </div>
             </div>
 
-            {/* Error message display */}
             {error && (
               <div className="text-red-500 text-sm mt-2">
                 {error}
               </div>
             )}
 
-            {/* Submit Button */}
             <Button type="submit" className="w-full">
               Sign Up
             </Button>
 
-            {/* Google Login Button */}
             <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
               Sign Up with Google
             </Button>
 
-            {/* GitHub Login Button */}
             <Button variant="outline" className="w-full" onClick={handleGitHubLogin}>
               Sign Up with GitHub
             </Button>
           </form>
 
-          {/* Login Link */}
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
             <Link to="/login" className="underline">Login</Link>
