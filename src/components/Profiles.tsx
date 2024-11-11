@@ -1,21 +1,10 @@
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import {Card,CardContent, CardDescription, CardFooter, CardHeader, CardTitle,}from"@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-
+import {Tabs,TabsContent,TabsList, TabsTrigger,} from "@/components/ui/tabs"
+import {Select,SelectContent,SelectItem,SelectTrigger, SelectValue,} from "@/components/ui/select"
+import { Checkbox } from "./ui/checkbox"
 export function Profiles() {
   return (
     <div>
@@ -50,10 +39,78 @@ export function Profiles() {
             </CardHeader>
             <CardContent className="space-y-2">
               {/* Add Scan-specific content here */}
+              <div className="flex items-center space-x-2 w-full">
+  <Label htmlFor="TCP Scan" className="whitespace-nowrap flex-shrink-0">
+    TCP Scan
+  </Label>
+  <Select>
+  <SelectTrigger className="w-[180px]">
+    <SelectValue placeholder="Select" />
+  </SelectTrigger>
+  <SelectContent>
+   
+    <SelectItem value="ACK scan">ACK Scan (-sA)</SelectItem>
+    <SelectItem value="TCP SYN scan">SYN Scan (-sS)</SelectItem>
+    <SelectItem value="FIN scan">FIN Scan (-sF)</SelectItem>
+    <SelectItem value="XMAS scan">XMAS Scan (-sX)</SelectItem>
+    <SelectItem value="NULL scan">NULL Scan (-sN)</SelectItem>
+    <SelectItem value="TCP Connect scan">TCP Connect Scan (-sT)</SelectItem>
+    <SelectItem value="Windows scan">Windows Scan (-sW)</SelectItem>
+    <SelectItem value="Maimon scan">Maimon Scan (-sM)</SelectItem>
+
+  </SelectContent>
+</Select>
+</div>
+<div className="flex items-center space-x-2 w-full">
+  <Label htmlFor="Non-TCP Scan" className="whitespace-nowrap flex-shrink-0">
+    Non-TCP Scan
+  </Label>
+  <Select>
+  <SelectTrigger className="w-[180px]">
+    <SelectValue placeholder="Select" />
+  </SelectTrigger>
+  <SelectContent>
+    
+    <SelectItem value="UDP scan">UDP Scan (-sU)</SelectItem>
+    <SelectItem value="SCTP scan">SCTP Scan (-sY)</SelectItem>
+    <SelectItem value="No port scan">No Port Scan (-sN)</SelectItem>
+    <SelectItem value="IP Protocol scan">IP Protocol Scan (-sO)</SelectItem>
+    <SelectItem value="List scan">List Scan (-sL)</SelectItem>
+    <SelectItem value="SCTP cookie-echo scan">SCTP Cookie-Echo Scan (-sZ)</SelectItem>
+    
+
+  </SelectContent>
+</Select>
+</div>
+<div className="flex items-center space-x-2 w-full">
+  <Label htmlFor="Timing Template" className="whitespace-nowrap flex-shrink-0">
+    Timing Template
+  </Label>
+  <Select>
+  <SelectTrigger className="w-[180px]">
+    <SelectValue placeholder="Select" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="-T0">Paranoid (-T0)</SelectItem>
+    <SelectItem value="-T1">Sneaky (-T1)</SelectItem>
+    <SelectItem value="-T2">Polite (-T2)</SelectItem>
+    <SelectItem value="-T3">Normal (-T3)</SelectItem>
+    <SelectItem value="-T4">Aggressive (-T4)</SelectItem>
+    <SelectItem value="-T5">Insane (-T5)</SelectItem>
+
+  </SelectContent>
+</Select>
+</div>
+<div className="flex items-center space-x-2 w-full">
+  <Label htmlFor="enaable all Advanced/Aggressive options (-A)" className="whitespace-nowrap flex-shrink-0">
+    Enable all Advanced/Aggressive options (-A)
+  </Label>
+
+ <Checkbox id="enable-all-advanced-aggressive-options" />
+
+</div>
             </CardContent>
-            <CardFooter>
-              <Button>Save changes</Button>
-            </CardFooter>
+  
           </Card>
         </TabsContent>
 
@@ -68,9 +125,7 @@ export function Profiles() {
             <CardContent className="space-y-2">
               {/* Add Ping-specific content here */}
             </CardContent>
-            <CardFooter>
-              <Button>Save changes</Button>
-            </CardFooter>
+  
           </Card>
         </TabsContent>
 
@@ -85,9 +140,7 @@ export function Profiles() {
             <CardContent className="space-y-2">
               {/* Add Scripting-specific content here */}
             </CardContent>
-            <CardFooter>
-              <Button>Save changes</Button>
-            </CardFooter>
+  
           </Card>
         </TabsContent>
 
@@ -102,9 +155,7 @@ export function Profiles() {
             <CardContent className="space-y-2">
               {/* Add Target-specific content here */}
             </CardContent>
-            <CardFooter>
-              <Button>Save changes</Button>
-            </CardFooter>
+  
           </Card>
         </TabsContent>
 
@@ -119,9 +170,7 @@ export function Profiles() {
             <CardContent className="space-y-2">
               {/* Add Source-specific content here */}
             </CardContent>
-            <CardFooter>
-              <Button>Save changes</Button>
-            </CardFooter>
+  
           </Card>
         </TabsContent>
 
@@ -136,9 +185,7 @@ export function Profiles() {
             <CardContent className="space-y-2">
               {/* Add Others-specific content here */}
             </CardContent>
-            <CardFooter>
-              <Button>Save changes</Button>
-            </CardFooter>
+  
           </Card>
         </TabsContent>
 
@@ -153,12 +200,13 @@ export function Profiles() {
             <CardContent className="space-y-2">
               {/* Add Timing-specific content here */}
             </CardContent>
-            <CardFooter>
-              <Button>Save changes</Button>
-            </CardFooter>
+  
           </Card>
         </TabsContent>
       </Tabs>
+      <div className="py-4">
+              <Button >Save changes</Button>
+              </div> 
     </div>
   )
 }
