@@ -8,7 +8,8 @@ import { SignUp } from "@/components/signuppage"; // Import SignUp component
 import { ForgotPassword } from "@/components/ForgotPassword";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore"; // Import the Zustand store
-
+import { Settings } from "@/components/Settings";
+import { Profiles } from "@/components/Profiles";
 function Main() {
   // Use Zustand store to manage authentication state
   const { isLoggedIn, isGuest, login, continueAsGuest, logout } = useAuthStore();
@@ -47,6 +48,8 @@ function Main() {
             <Route path="/signup" element={<SignUp onSignUp={() => {}} />} />
             <Route  path="/login" element={<Login_01 onLogin={login} onContinueAsGuest={continueAsGuest} />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/profiles" element={<Profiles />} />
           </Routes>
         </Router>
         <Toaster />

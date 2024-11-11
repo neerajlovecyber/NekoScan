@@ -8,7 +8,6 @@ import {
   Sparkles,
   LogIn,
 } from "lucide-react";
-import React from "react";
 import {
   Avatar,
   AvatarFallback,
@@ -34,7 +33,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 export function NavUser() {  // Removed user prop since we're using store data
   const navigate = useNavigate();
 
-  const { isLoggedIn, isGuest, email, profileImage, logout } = useAuthStore();
+  const { isLoggedIn,  email, profileImage, logout } = useAuthStore();
 
   // Create user object from auth store data
   const userData = isLoggedIn ? {
