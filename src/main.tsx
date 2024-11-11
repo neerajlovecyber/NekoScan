@@ -10,6 +10,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore"; // Import the Zustand store
 import { Settings } from "@/components/Settings";
 import { Profiles } from "@/components/Profiles";
+import { Home } from "@/components/Home";
 function Main() {
   // Use Zustand store to manage authentication state
   const { isLoggedIn, isGuest, login, continueAsGuest, logout } = useAuthStore();
@@ -50,6 +51,7 @@ function Main() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/profiles" element={<Profiles />} />
+            <Route path="/home" element={<Home />} />
           </Routes>
         </Router>
         <Toaster />
