@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import {
   BadgeCheck,
   Bell,
@@ -6,14 +6,14 @@ import {
   CreditCard,
   LogOut,
   Sparkles,
-  LogIn, // Add login icon
-} from "lucide-react"
-import React, { useState, useEffect } from "react";
+  LogIn,
+} from "lucide-react";
+import React from "react";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@/components/ui/avatar"
+} from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,41 +22,35 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { useNavigate } from "react-router-dom" // Import useNavigate from react-router-dom for navigation
-import { useAuthStore } from "@/store/useAuthStore"; // Import the Zustand store
+} from "@/components/ui/sidebar";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/useAuthStore";
 
-export function NavUser({
-  user,
-}: {
-  user?: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
-}) {
-  const navigate = useNavigate(); // Use react-router-dom's useNavigate hook for page navigation
+export function NavUser() {  // Removed user prop since we're using store data
+  const navigate = useNavigate();
 
-  // Access Zustand global store for authentication state and actions
-  const { isLoggedIn, isGuest, login, continueAsGuest, logout } = useAuthStore();
+  const { isLoggedIn, isGuest, email, profileImage, logout } = useAuthStore();
 
-  const [isNavigating, setIsNavigating] = useState(false); // Add local state for navigation
+  // Create user object from auth store data
+  const userData = isLoggedIn ? {
+    name: email ? email.split('@')[0] : '',
+    email: email || '',
+    avatar: profileImage || ''
+  } : undefined;
 
   const handleLoginClick = () => {
-    // Set guest status to false when login is clicked
- 
-    logout();
-// Update guest status in the global state
-
-    // Set navigation flag to trigger useEffect for redirect
-    
+    navigate("/login");
   };
 
+  const handleLogoutClick = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <SidebarMenu>
@@ -67,19 +61,19 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              {isLoggedIn && user ? (
+              {isLoggedIn && userData ? (
                 <>
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarImage src={userData.avatar} alt={userData.name} />
                     <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{user.name}</span>
-                    <span className="truncate text-xs">{user.email}</span>
+                    <span className="truncate font-semibold">{userData.name}</span>
+                    <span className="truncate text-xs">{userData.email}</span>
                   </div>
                 </>
               ) : (
-                <div className="text-sm font-semibold">Guest</div> // Display "Guest" when not logged in
+                <div className="text-sm font-semibold">Guest</div>
               )}
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -90,17 +84,17 @@ export function NavUser({
             align="end"
             sideOffset={4}
           >
-            {isLoggedIn && user ? (
+            {isLoggedIn && userData ? (
               <>
                 <DropdownMenuLabel className="p-0 font-normal">
                   <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarImage src={userData.avatar} alt={userData.name} />
                       <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">{user.name}</span>
-                      <span className="truncate text-xs">{user.email}</span>
+                      <span className="truncate font-semibold">{userData.name}</span>
+                      <span className="truncate text-xs">{userData.email}</span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
@@ -127,7 +121,7 @@ export function NavUser({
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout}>
+                <DropdownMenuItem onClick={handleLogoutClick}>
                   <LogOut />
                   Log out
                 </DropdownMenuItem>
