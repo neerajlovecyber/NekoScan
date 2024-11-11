@@ -5,9 +5,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Login_01 } from "@/components/loginpage"; 
 import { SignUp } from "@/components/signuppage"; // Import SignUp component
-
+import { ForgotPassword } from "@/components/ForgotPassword";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useAuthStore } from "./store/useAuthStore"; // Import the Zustand store
+import { useAuthStore } from "@/store/useAuthStore"; // Import the Zustand store
 
 function Main() {
   // Use Zustand store to manage authentication state
@@ -46,6 +46,7 @@ function Main() {
             {/* Route for SignUp page */}
             <Route path="/signup" element={<SignUp onSignUp={() => {}} />} />
             <Route  path="/login" element={<Login_01 onLogin={login} onContinueAsGuest={continueAsGuest} />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
           </Routes>
         </Router>
         <Toaster />
