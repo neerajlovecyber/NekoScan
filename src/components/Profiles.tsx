@@ -16,7 +16,7 @@ export function Profiles() {
         <Label htmlFor="description">Profile Description</Label>
         <Input id="description" defaultValue="My Custom Profile" />
       </div>
-      
+    
       
       <Tabs defaultValue="Scan" className="">
         <TabsList className="grid w-full grid-cols-7">
@@ -88,7 +88,7 @@ export function Profiles() {
   </Label>
   <Select>
   <SelectTrigger className="w-[180px]">
-    <SelectValue placeholder="Select" />
+    <SelectValue placeholder="Select (Default -T3)" />
   </SelectTrigger>
   <SelectContent>
     <SelectItem value="-T0">Paranoid (-T0)</SelectItem>
@@ -101,14 +101,48 @@ export function Profiles() {
   </SelectContent>
 </Select>
 </div>
-<div className="flex items-center space-x-2 w-full">
+<div className="flex items-center space-x-2 w-full ">
+  <Label htmlFor="Idle Scan (-sl)" className="whitespace-nowrap flex-shrink-0">
+ Idle Scan (Zombie Scan) (-sl)
+  </Label>
+ <Checkbox id="enable-all-advanced-aggressive-options" />
+ <Input placeholder="" />
+ </div>
+ <div className="flex items-center space-x-2 w-full ">
+  <Label htmlFor="FTP Bounce Scan (-b)" className="whitespace-nowrap flex-shrink-0">
+ FTP Bounce Scan (-b)
+  </Label>
+ <Checkbox id="enable-all-advanced-aggressive-options" />
+ <Input placeholder="" />
+ </div>
+<div className="flex items-center space-x-2 w-full ">
   <Label htmlFor="enaable all Advanced/Aggressive options (-A)" className="whitespace-nowrap flex-shrink-0">
     Enable all Advanced/Aggressive options (-A)
   </Label>
-
  <Checkbox id="enable-all-advanced-aggressive-options" />
-
 </div>
+<div className="flex items-center space-x-2 w-full pt-2">
+  <Label htmlFor="Operating System Detection (-O)" className="whitespace-nowrap flex-shrink-0">
+ Operating System Detection (-O)
+  </Label>
+ <Checkbox id="enable-all-advanced-aggressive-options" />
+</div>
+<div className="flex items-center space-x-2 w-full pt-2">
+  <Label htmlFor="Version Detection (-V)" className="whitespace-nowrap flex-shrink-0">
+ Version Detection (-V)
+  </Label>
+ <Checkbox id="enable-all-advanced-aggressive-options" /></div>
+ 
+ <div className="flex items-center space-x-2 w-full pt-2">
+  <Label htmlFor="Disaable reverse DNS (-n)" className="whitespace-nowrap flex-shrink-0">
+ Disaable reverse DNS (-n)
+  </Label>
+ <Checkbox id="enable-all-advanced-aggressive-options" /></div>
+ <div className="flex items-center space-x-2 w-full pt-2">
+  <Label htmlFor="IPv6 support (-6)" className="whitespace-nowrap flex-shrink-0">
+ IPv6 support (-6)
+  </Label>
+ <Checkbox id="enable-all-advanced-aggressive-options" /></div>
             </CardContent>
   
           </Card>
