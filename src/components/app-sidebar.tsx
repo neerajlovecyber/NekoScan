@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { Bot, Settings2, SquareTerminal } from "lucide-react";
 import { NavUser } from "@/components/nav-user";
@@ -48,7 +49,7 @@ export function AppSidebar({ onPageChange, ...props }: React.ComponentProps<type
   };
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...props} className="bg-background">
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
