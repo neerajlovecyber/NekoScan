@@ -1,33 +1,15 @@
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-"use client"
-import { Check, ChevronsUpDown, Search } from "lucide-react"
-import * as React from "react"
-import { cn } from "@/lib/utils"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import { toast } from "sonner"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import hljs from "highlight.js";
+// Import a highlight.js theme
 
 const profiles = [
   { value: "-T4", label: "Fast Scan" },
@@ -44,10 +26,16 @@ export function NewScan() {
   // Generate command based on profile and target
   const command = `nmap ${value} ${target}`;
 
+  React.useEffect(() => {
+    hljs.highlightAll(); // Apply syntax highlighting to all code blocks
+  }, [command]); // Re-run whenever the command changes
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline"><Search /> New Scan</Button>
+        <Button variant="outline">
+          <Search /> New Scan
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
@@ -61,7 +49,11 @@ export function NewScan() {
             <Label htmlFor="name" className="text-right">
               Name
             </Label>
-            <Input id="name" placeholder="Name of the scan" className="col-span-3" />
+            <Input
+              id="name"
+              placeholder="Name of the scan"
+              className="col-span-3"
+            />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="target" className="text-right">
@@ -85,7 +77,7 @@ export function NewScan() {
                   variant="outline"
                   role="combobox"
                   aria-expanded={open}
-                  className="w-[200px] justify-between"
+                  className="w-[200px] justify-between col-span-3"
                 >
                   {value
                     ? profiles.find((profile) => profile.value === value)?.label
@@ -104,14 +96,18 @@ export function NewScan() {
                           key={profile.value}
                           value={profile.value}
                           onSelect={(currentValue) => {
-                            setValue(currentValue === value ? "" : currentValue);
+                            setValue(
+                              currentValue === value ? "" : currentValue
+                            );
                             setOpen(false);
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              value === profile.value ? "opacity-100" : "opacity-0"
+                              value === profile.value
+                                ? "opacity-100"
+                                : "opacity-0"
                             )}
                           />
                           {profile.label}
@@ -124,13 +120,17 @@ export function NewScan() {
             </Popover>
           </div>
           {/* Display the command to be executed */}
-          <div className="mt-4">
-            <Label className="text-left">Command Preview:</Label>
-            <div className="bg-gray-800 p-2 rounded">
-              <code>{command}</code>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Command</Label>
+            <div className="bg-gray-800 p-2 rounded col-span-3">
+              {/* Apply hljs styling */}
+              <pre>
+                <code className="language-actionscript">{command}</code>
+              </pre>
             </div>
           </div>
         </div>
+
         <DialogFooter>
           <Button
             variant="outline"
