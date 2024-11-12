@@ -1,14 +1,17 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label"; // Make sure the Label component is imported
+import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
+import { Input } from "../ui/input";
 
 export function ScanTab({ setScanCommand }) {
   const [tcpScan, setTcpScan] = useState(null);
   const [nonTcpScan, setNonTcpScan] = useState(null);
   const [timing, setTiming] = useState(null);
   const [idleScan, setIdleScan] = useState(false);
+  const [idleScanValue, setIdleScanValue] = useState(""); // Value for idle scan if enabled
   const [ftpBounce, setFtpBounce] = useState(false);
+  const [ftpBounceValue, setFtpBounceValue] = useState(""); // Value for FTP bounce if enabled
   const [advancedOptions, setAdvancedOptions] = useState(false);
   const [osDetection, setOsDetection] = useState(false);
   const [versionDetection, setVersionDetection] = useState(false);
@@ -22,8 +25,8 @@ export function ScanTab({ setScanCommand }) {
     if (tcpScan) command += ` ${tcpScan}`;
     if (nonTcpScan) command += ` ${nonTcpScan}`;
     if (timing) command += ` ${timing}`;
-    if (idleScan) command += " -sI";
-    if (ftpBounce) command += " -b";
+    if (idleScan && idleScanValue) command += ` -sI ${idleScanValue}`;
+    if (ftpBounce && ftpBounceValue) command += ` -b ${ftpBounceValue}`;
     if (advancedOptions) command += " -A";
     if (osDetection) command += " -O";
     if (versionDetection) command += " -sV";
@@ -32,7 +35,11 @@ export function ScanTab({ setScanCommand }) {
 
     // Pass the full command string back to ProfileTab via the setScanCommand function
     setScanCommand(command);
-  }, [tcpScan, nonTcpScan, timing, idleScan, ftpBounce, advancedOptions, osDetection, versionDetection, reverseDns, ipv6, setScanCommand]);
+  }, [
+    tcpScan, nonTcpScan, timing, idleScan, idleScanValue,
+    ftpBounce, ftpBounceValue, advancedOptions, osDetection,
+    versionDetection, reverseDns, ipv6, setScanCommand
+  ]);
 
   return (
     <div className="space-y-4">
@@ -98,10 +105,12 @@ export function ScanTab({ setScanCommand }) {
       <div className="flex items-center space-x-2 w-full">
         <Label htmlFor="Idle Scan (-sI)" className="whitespace-nowrap flex-shrink-0">Idle Scan (Zombie Scan) (-sI)</Label>
         <Checkbox checked={idleScan} onCheckedChange={(checked) => setIdleScan(checked)} />
+        <Input value={idleScanValue} onChange={(e) => setIdleScanValue(e.target.value)} disabled={!idleScan} placeholder="<zombie host[:probeport]>" />
       </div>
       <div className="flex items-center space-x-2 w-full">
         <Label htmlFor="FTP Bounce Scan (-b)" className="whitespace-nowrap flex-shrink-0">FTP Bounce Scan (-b)</Label>
         <Checkbox checked={ftpBounce} onCheckedChange={(checked) => setFtpBounce(checked)} />
+        <Input value={ftpBounceValue} onChange={(e) => setFtpBounceValue(e.target.value)} disabled={!ftpBounce} placeholder=" <FTP relay host>" />
       </div>
       <div className="flex items-center space-x-2 w-full">
         <Label htmlFor="Advanced Options (-A)" className="whitespace-nowrap flex-shrink-0">Enable all Advanced/Aggressive options (-A)</Label>

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CommandIcon } from "lucide-react";
 import { ScanTab } from "./profiletabs/scanTab";
-
+import { PingTab } from "./profiletabs/pingTab"
 export function Profiles() {
   const [profileName, setProfileName] = useState("Demo Scan");
   const [description, setDescription] = useState("My Custom Profile");
@@ -67,7 +67,7 @@ export function Profiles() {
               <CardDescription>Configure ping options here.</CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Add your Ping tab options here */}
+            <PingTab setScanCommand={setGeneratedCommand} />
             </CardContent>
           </Card>
         </TabsContent>
