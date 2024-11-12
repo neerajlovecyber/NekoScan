@@ -6,15 +6,29 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CommandIcon } from "lucide-react";
 import { ScanTab } from "./profiletabs/scanTab";
-import { PingTab } from "./profiletabs/pingTab"
+import { PingTab } from "./profiletabs/pingTab";
+import { ScriptsTab } from "./profiletabs/scriptsTab";  // Ensure this is the correct import
+
 export function Profiles() {
   const [profileName, setProfileName] = useState("Demo Scan");
   const [description, setDescription] = useState("My Custom Profile");
-  const [generatedCommand, setGeneratedCommand] = useState("nmap");
+  const [scanOptions, setScanOptions] = useState(""); // Store options from ScanTab
+  const [pingOptions, setPingOptions] = useState(""); // Store options from PingTab
+  const [scriptsOptions, setScriptsOptions] = useState(""); // Store options from ScriptsTab
+  const [generatedCommand, setGeneratedCommand] = useState("nmap "); // Initial nmap command
+
+  useEffect(() => {
+    updateCommand();
+  }, [scanOptions, pingOptions, scriptsOptions]); // Update command when any option changes
+
+  // Append new options to the command from ScanTab, PingTab, and ScriptsTab
+  const updateCommand = () => {
+    const fullCommand = `nmap ${scanOptions} ${pingOptions} ${scriptsOptions}`.trim();
+    setGeneratedCommand(fullCommand);
+  };
 
   // Generate profile string with selected options
   const generateProfileString = () => {
-    // Build profile string (this function should remain unchanged)
     return `Profile Name: ${profileName}\nDescription: ${description}\nCommand: ${generatedCommand}`;
   };
 
@@ -22,15 +36,25 @@ export function Profiles() {
     <div>
       <div className="space-y-1">
         <Label htmlFor="name">Profile Name</Label>
-        <Input id="name" value={profileName} onChange={(e) => setProfileName(e.target.value)} />
+        <Input
+          id="name"
+          value={profileName}
+          onChange={(e) => setProfileName(e.target.value)}
+        />
       </div>
       <div className="space-y-1 pb-4">
         <Label htmlFor="description">Profile Description</Label>
-        <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Input
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
       </div>
 
-      <div className="flex items-center space-x-2 w-full ">
-        <label className="flex items-center space-x-2 pb-4 "><CommandIcon/></label>
+      <div className="flex items-center space-x-2 w-full">
+        <label className="flex items-center space-x-2 pb-4">
+          <CommandIcon />
+        </label>
         <div className="bg-gray-800 p-2 rounded text-white min-w-[300px] mb-4">
           <code>{generatedCommand}</code>
         </div>
@@ -54,12 +78,11 @@ export function Profiles() {
               <CardDescription>Configure scan options here. Click save when you're done.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <ScanTab setScanCommand={setGeneratedCommand} />
+              <ScanTab setScanOptions={setScanOptions} />
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Add content for the other tabs */}
         <TabsContent value="Ping">
           <Card>
             <CardHeader>
@@ -67,7 +90,7 @@ export function Profiles() {
               <CardDescription>Configure ping options here.</CardDescription>
             </CardHeader>
             <CardContent>
-            <PingTab setScanCommand={setGeneratedCommand} />
+              <PingTab setPingOptions={setPingOptions} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -75,65 +98,21 @@ export function Profiles() {
         <TabsContent value="Scripting">
           <Card>
             <CardHeader>
-              <CardTitle>Scripting Options</CardTitle>
-              <CardDescription>Configure Nmap Scripting Engine options here.</CardDescription>
+              <CardTitle>Scripting</CardTitle>
+              <CardDescription>Configure scripting options here.</CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Add your Scripting tab options here */}
+              <ScriptsTab setScriptsOptions={setScriptsOptions} />  {/* Ensure ScriptsTab is setting the correct value */}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="Target">
-          <Card>
-            <CardHeader>
-              <CardTitle>Target Options</CardTitle>
-              <CardDescription>Define target specifications here.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Add your Target tab options here */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="Source">
-          <Card>
-            <CardHeader>
-              <CardTitle>Source Options</CardTitle>
-              <CardDescription>Configure source options here.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Add your Source tab options here */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="Others">
-          <Card>
-            <CardHeader>
-              <CardTitle>Other Options</CardTitle>
-              <CardDescription>Additional Nmap options.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Add other options here */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="Timing">
-          <Card>
-            <CardHeader>
-              <CardTitle>Timing Options</CardTitle>
-              <CardDescription>Configure Nmap timing options here.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Add your Timing tab options here */}
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* Add other tabs content as needed */}
       </Tabs>
 
-      <Button className="mt-4" onClick={() => alert(generateProfileString())}>Save Profile</Button>
+      <Button className="mt-4" onClick={() => alert(generateProfileString())}>
+        Save Profile
+      </Button>
     </div>
   );
 }
