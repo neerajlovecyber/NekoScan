@@ -1,64 +1,84 @@
-name: 'publish'
+name: Tauri Release Workflow
 
 on:
   push:
     branches:
-      - release
+      - main
 
-# This workflow will trigger on each push to the `release` branch to create or update a GitHub release, build your app, and upload the artifacts to the release.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  publish-tauri:
-    permissions:
-      contents: write
+  # Step 1: Draft Release on GitHub
+  draft:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create GitHub Release Draft
+        uses: actions/create-release@v1
+        with:
+          tag_name: v${{ github.sha }}
+          release_name: "Release v${{ github.sha }}"
+          draft: true
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Step 2: Build App for Multiple Platforms
+  build:
+    needs: draft
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - platform: 'ubuntu-22.04' 
-            args: ''
-          - platform: 'windows-latest'
-            args: ''
+        os: [ubuntu-22.04,  windows-latest]
 
-    runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: setup node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
-      - name: bun install
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
+          node-version: "20"
 
-      - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust Stable Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          toolchain: stable
+          cache: true
 
-      - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+      - name: Install Linux Dependencies (if Linux)
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-        # webkitgtk 4.0 is for Tauri v1 - webkitgtk 4.1 is for Tauri v2.
-        # You can remove the one that doesn't apply to your app to speed up the workflow a bit.
+          sudo apt-get install -y webkit2gtk-4.1
 
-      - name: install frontend dependencies
-        run: bun install # change this to npm, pnpm or bun depending on which one you use.
-
-      - uses: tauri-apps/tauri-action@v0
+      - name: Build Tauri App
+        run: |
+          npm ci
+          npm run tauri build ${matrix.os == 'macos-latest' && '--target x86_64-apple-darwin aarch64-apple-darwin'}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: Upload Assets to GitHub Release
+        uses: actions/upload-release-asset@v1
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: 'App v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: true
-          prerelease: false 
-          args: ${{ matrix.args }}
+          upload_url: ${{ steps.draft.outputs.upload_url }}
+          asset_path: src-tauri/target/release
+          asset_name: tauri_app_${{ matrix.os }}.zip
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Step 3: Publish Release on GitHub
+  publish:
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish GitHub Release
+        run: |
+          gh release publish ${{ github.sha }} --draft=false --prerelease=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
