@@ -6,7 +6,7 @@
   "plugins": {
       "updater": {
         "endpoints": ["https://github.com/neerajlovecyber/NekoScan/releases/latest/download/latest.json"],
-        "pubkey": "THE_PUBLIC_KEY_GENERATED_BY_UPDATER",
+        "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY3RjJENUNGQzg4RDI5RTgKUldUb0tZM0l6OVh5OTZkajJiaFEya0s0VVplN1RzRWk2ZHNxZG54SUxqTFl5K0RRWm9teENkL1EK",
         "windows": {
           "installMode": "passive"
         }     
