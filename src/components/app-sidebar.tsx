@@ -82,7 +82,7 @@ export function AppSidebar({ onPageChange, ...props }: React.ComponentProps<type
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser  />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

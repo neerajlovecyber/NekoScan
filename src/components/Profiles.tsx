@@ -8,7 +8,10 @@ import { CommandIcon } from "lucide-react";
 import { ScanTab } from "./profiletabs/scanTab";
 import { PingTab } from "./profiletabs/pingTab";
 import { ScriptsTab } from "./profiletabs/scriptsTab";  // Ensure this is the correct import
-
+import { TargetsTab } from "./profiletabs/targetsTab";
+import { SourceTab } from "./profiletabs/sourceTab";
+import { OtherTab } from "./profiletabs/othersTab";
+import { TimingTab } from "./profiletabs/timingTab";
 export function Profiles() {
   const [profileName, setProfileName] = useState("Demo Scan");
   const [description, setDescription] = useState("My Custom Profile");
@@ -16,14 +19,17 @@ export function Profiles() {
   const [pingOptions, setPingOptions] = useState(""); // Store options from PingTab
   const [scriptsOptions, setScriptsOptions] = useState(""); // Store options from ScriptsTab
   const [generatedCommand, setGeneratedCommand] = useState("nmap "); // Initial nmap command
-
+const [targetsOptions, setTargetsOptions] = useState(""); // Store options from TargetsTab
+const [sourceOptions, setSourceOptions] = useState(""); // Store options from SourceTab
+const [otherOptions, setOtherOptions] = useState(""); // Store options from OtherTab
+const [timingOptions, setTimingOptions] = useState(""); // Store options from TimingTab
   useEffect(() => {
     updateCommand();
-  }, [scanOptions, pingOptions, scriptsOptions]); // Update command when any option changes
+  }, [scanOptions, pingOptions, scriptsOptions,targetsOptions, sourceOptions ,otherOptions,timingOptions]); // Update command when any option changes
 
   // Append new options to the command from ScanTab, PingTab, and ScriptsTab
   const updateCommand = () => {
-    const fullCommand = `nmap ${scanOptions} ${pingOptions} ${scriptsOptions}`.trim();
+    const fullCommand = `nmap ${scanOptions} ${pingOptions} ${scriptsOptions} ${targetsOptions} ${sourceOptions} ${otherOptions} ${timingOptions}`.trim(); // Include targetsOptions here
     setGeneratedCommand(fullCommand);
   };
 
@@ -34,6 +40,7 @@ export function Profiles() {
 
   return (
     <div>
+      <h1 className="text-2xl font-bold mb-4">Create a New Profile</h1>
       <div className="space-y-1">
         <Label htmlFor="name">Profile Name</Label>
         <Input
@@ -106,9 +113,15 @@ export function Profiles() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* Add other tabs content as needed */}
+        <TabsContent value="Target"><Card><CardHeader><CardTitle>Target</CardTitle><CardDescription>Configure target options here.</CardDescription></CardHeader>
+        <CardContent>
+          <TargetsTab setTargetsOptions={setTargetsOptions} /> 
+          </CardContent></Card></TabsContent>
+  <TabsContent value="Source"><Card><CardHeader><CardTitle>Source</CardTitle><CardDescription>Configure source options here.</CardDescription></CardHeader><CardContent><SourceTab setSourceOptions={setSourceOptions} /></CardContent></Card></TabsContent>
+  <TabsContent value="Others"><Card><CardHeader><CardTitle>Others</CardTitle><CardDescription>Configure other options here.</CardDescription></CardHeader><CardContent><OtherTab setOtherOptions={setOtherOptions} /></CardContent></Card> </TabsContent>
+  <TabsContent value="Timing"><Card><CardHeader><CardTitle>Timing</CardTitle><CardDescription>Configure timing options here.</CardDescription></CardHeader><CardContent><TimingTab setTimingOptions={setTimingOptions} /></CardContent></Card></TabsContent>
       </Tabs>
+
 
       <Button className="mt-4" onClick={() => alert(generateProfileString())}>
         Save Profile

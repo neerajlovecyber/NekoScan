@@ -13,7 +13,7 @@ import { Profiles } from "@/components/Profiles";
 import { Home } from "@/components/Home";
 function Main() {
   // Use Zustand store to manage authentication state
-  const { isLoggedIn, isGuest, login, continueAsGuest, logout } = useAuthStore();
+  const { isLoggedIn, isGuest, login, continueAsGuest } = useAuthStore();
 
   // Check if the user is logged in or guest when the app loads
   useEffect(() => {
@@ -21,7 +21,11 @@ function Main() {
     const savedGuestStatus = localStorage.getItem("isGuest");
     
     if (savedLoginStatus === "true") {
-      login();
+      const email = localStorage.getItem("email");
+      const profileImage = localStorage.getItem("profileImage");
+      if (email && profileImage) {
+        login(email, profileImage);
+      }
     } else if (savedGuestStatus === "true") {
       continueAsGuest();
     }
@@ -36,18 +40,17 @@ function Main() {
             <Route 
               path="/" 
               element={isLoggedIn || isGuest ? (
-                <App onLogout={logout} />
+                <App  />
               ) : (
                 <Login_01
-                  onLogin={login} // Use the Zustand login method
-                  onContinueAsGuest={continueAsGuest} // Use the Zustand guest method
+                   // Use the Zustand guest method
                 />
               )}
             />
             
             {/* Route for SignUp page */}
-            <Route path="/signup" element={<SignUp onSignUp={() => {}} />} />
-            <Route  path="/login" element={<Login_01 onLogin={login} onContinueAsGuest={continueAsGuest} />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route  path="/login" element={<Login_01/>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/profiles" element={<Profiles />} />
