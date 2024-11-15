@@ -4,26 +4,28 @@
   "description": "Capability for the main window",
   "windows": [
     "main"
-    
   ],
   "permissions": [
     "core:default",
     "shell:allow-open",
-   "shell:allow-execute",
-   "shell:default",
-   "fs:allow-read",
-   "dialog:default",
-   "dialog:allow-ask",
-   "dialog:allow-message",
-   "updater:default",
-   "updater:allow-check",
-   "updater:allow-download-and-install",
+    "shell:allow-execute",
+    "shell:default",
+    "fs:allow-read",
+    "dialog:default",
+    "dialog:allow-ask",
+    "dialog:allow-message",
+    "updater:default",
+    "updater:allow-check",
+    "updater:allow-download-and-install",
     "fs:allow-write",
     "sql:default",
     "sql:allow-execute",
     "sql:allow-load",
     "sql:allow-select",
     "sql:allow-close",
+    "shell:allow-spawn",
+    "shell:allow-kill",
+    "shell:allow-stdin-write",
     {
       "identifier": "shell:allow-execute",
       "allow": [
@@ -40,26 +42,14 @@
         {
           "name": "cmd",
           "cmd": "powershell",
-          "args":true
-            
-          
-        }
-        ,
+          "args": true
+        },
         {
           "name": "nmap",
           "cmd": "nmap",
-          "args":true
-            
-          
+          "args": true
         }
       ]
     }
-   
-    
-      
-    
-    ]
-  
-
-  
+  ]
 }
