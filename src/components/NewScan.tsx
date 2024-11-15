@@ -2,28 +2,103 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-("use client");
-import { Check, ChevronsUpDown,  Search } from "lucide-react";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command as UICommand, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import Database from "@tauri-apps/plugin-sql";
+import { useEffect } from "react";
+import { Command } from '@tauri-apps/plugin-shell';
 
 const profiles = [
   { value: "-T4", label: "Fast Scan" },
   { value: "-T2", label: "Slow Scan" },
-  { value: "-T5 -A  -T5 -A -T5 -A ", label: "Intensive Scan" },
+  { value: "-T5 -A -T5 -A -T5 -A", label: "Intensive Scan" },
   { value: "-sS", label: "Full TCP scan" },
 ];
+
+// Load the database
+const db = await Database.load("sqlite:test.db");
+
+// Function to check if the database connection is working
+async function checkDatabase() {
+  try {
+    await db.execute("CREATE TABLE IF NOT EXISTS scans (id INTEGER PRIMARY KEY, name TEXT, target TEXT, profile TEXT, time_started TEXT, progress TEXT)");
+    toast.success("Database connection is working!");
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    toast.error("Database connection failed. Check the console for details.");
+  }
+}
+
+// Function to run the scan command and return its output
+const Scan = async (script: string) => {
+  try {
+    const isWindows = navigator.userAgent.includes("Windows");
+    const command = isWindows ? 'cmd' : 'sh';
+    const args = isWindows
+      ? ['/C', `nmap ${script}`]
+      : ['-c', `nmap ${script}`];
+
+    const result = await Command.create(command, args).execute();
+
+    if (result.stdout) {
+      return result.stdout; // Return scan result
+    }
+  } catch (error) {
+    console.error("Scan execution failed:", error);
+    toast.error("Scan execution failed");
+  }
+};
 
 export function NewScan() {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
   const [target, setTarget] = React.useState(""); // State for target input
+  const [scanName, setScanName] = React.useState(""); // State for scan name
+  const [scanProgress, setScanProgress] = React.useState("0%"); // State for scan progress
 
   // Generate command based on profile and target
   const command = `nmap ${value} ${target}`;
+
+  // Check the database connection when the component mounts
+  useEffect(() => {
+    checkDatabase();
+  }, []);
+
+  // Handle the scan start
+  const handleScanStart = async () => {
+    try {
+      // Add scan details to the database (initial progress set to "0%")
+      const currentTime = new Date().toLocaleString();
+      await db.execute(
+        "INSERT INTO scans (name, target, profile, time_started, progress) VALUES (?, ?, ?, ?, ?)",
+        [scanName, target, value, currentTime, scanProgress]
+      );
+
+      // Show a toast notification for scan initiation
+      toast.success(`Scan initiated for ${scanName} on ${target}`, {
+        description: `Profile: ${value}`,
+        action: {
+          label: "Cancel Scan",
+          onClick: () => console.log("Scan cancelled"),
+        },
+      });
+
+      // Execute the scan and log the result here
+      const scanResult = await Scan(command);
+      console.log("Scan output:", scanResult); // Log the scan result here
+
+      // Simulate progress (update this based on your actual scan process)
+      setScanProgress("10%");
+
+    } catch (error) {
+      console.error("Error starting scan:", error);
+      toast.error("Scan initiation failed. Check the console for details.");
+    }
+  };
 
   return (
     <Dialog>
@@ -36,10 +111,10 @@ export function NewScan() {
         <DialogHeader>
           <DialogTitle>Create a new scan</DialogTitle>
           <DialogDescription>
-            Make changes to your Scan Settings here. Click Start Scanning when
-            you're done.
+            Make changes to your Scan Settings here. Click Start Scanning when you're done.
           </DialogDescription>
         </DialogHeader>
+
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
@@ -48,6 +123,8 @@ export function NewScan() {
             <Input
               id="name"
               placeholder="Name of the scan"
+              value={scanName}
+              onChange={(e) => setScanName(e.target.value)}
               className="col-span-3"
             />
           </div>
@@ -82,7 +159,7 @@ export function NewScan() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
-                <Command>
+                <UICommand>
                   <CommandInput placeholder="Search profile..." />
                   <CommandList>
                     <CommandEmpty>No profile found.</CommandEmpty>
@@ -92,18 +169,14 @@ export function NewScan() {
                           key={profile.value}
                           value={profile.value}
                           onSelect={(currentValue) => {
-                            setValue(
-                              currentValue === value ? "" : currentValue
-                            );
+                            setValue(currentValue === value ? "" : currentValue);
                             setOpen(false);
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              value === profile.value
-                                ? "opacity-100"
-                                : "opacity-0"
+                              value === profile.value ? "opacity-100" : "opacity-0"
                             )}
                           />
                           {profile.label}
@@ -111,7 +184,7 @@ export function NewScan() {
                       ))}
                     </CommandGroup>
                   </CommandList>
-                </Command>
+                </UICommand>
               </PopoverContent>
             </Popover>
           </div>
@@ -127,18 +200,7 @@ export function NewScan() {
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() =>
-              toast("Scan has been initialized", {
-                description: `Target: ${target} - Profile: ${value}`,
-                action: {
-                  label: "Cancel Scan",
-                  onClick: () => console.log("Scan cancelled"),
-                },
-              })
-            }
-          >
+          <Button variant="outline" onClick={handleScanStart}>
             Start Scan
           </Button>
         </DialogFooter>
