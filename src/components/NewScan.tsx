@@ -11,7 +11,6 @@ import { Command as UICommand, CommandEmpty, CommandGroup, CommandInput, Command
 import Database from "@tauri-apps/plugin-sql";
 import { useEffect } from "react";
 import { Command } from '@tauri-apps/plugin-shell';
-
 const profiles = [
   { value: "-T4", label: "Fast Scan" },
   { value: "-T2", label: "Slow Scan" },
@@ -113,7 +112,7 @@ export function NewScan() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button  className=" animate-buttonheartbeat rounded-md py-1 text-sm font-semibold text-white inline-flex">
           <Search /> New Scan
         </Button>
       </DialogTrigger>
@@ -221,6 +220,9 @@ export function NewScan() {
           <Button variant="outline" onClick={handleScanStart}>
             Start Scan
           </Button>
+          
+  
+
         </DialogFooter>
       </DialogContent>
     </Dialog>
