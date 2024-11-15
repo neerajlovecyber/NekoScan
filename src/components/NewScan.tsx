@@ -23,8 +23,18 @@ const db = await Database.load("sqlite:test.db");
 
 async function checkDatabase() {
   try {
-    await db.execute("CREATE TABLE IF NOT EXISTS scans (id INTEGER PRIMARY KEY, name TEXT, target TEXT, profile TEXT, time_started TEXT, progress TEXT)");
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS scans (
+        id TEXT PRIMARY KEY,
+        name TEXT,
+        target TEXT,
+        profile TEXT,
+        time_started TEXT,
+        progress TEXT
+      );
+    `);
     toast.success("Database connection is working!");
+    console.log("output", await db.execute("SELECT name FROM scans"));
   } catch (error) {
     console.error("Database connection failed:", error);
     toast.error("Database connection failed. Check the console for details.");
@@ -43,13 +53,26 @@ export function NewScan() {
 
   useEffect(() => {
     checkDatabase();
-  }, []);
+
+    // Fetch scans from the database when the component mounts
+    const fetchScans = async () => {
+      try {
+        const results = await db.select('SELECT * FROM scans');
+        console.log('Scans in database:', results);
+      } catch (error) {
+        console.error('Error fetching scans:', error);
+      }
+    };
+
+    fetchScans(); // Run once when the component mounts
+  }, []); // Empty dependency array means this runs once on mount
 
   const handleScanStart = async () => {
     try {
       const scan_id = await invoke("start_scan", { script: command });
   
       // Insert the scan details into the database here
+      console.log("Scan started with ID:", scan_id);  // Log the actual scan_id
       await db.execute(
         "INSERT INTO scans (id, name, target, profile, time_started, progress) VALUES (?, ?, ?, ?, ?, ?)",
         [scan_id, scanName, target, value, new Date().toLocaleString(), "0%"]
@@ -63,16 +86,19 @@ export function NewScan() {
         },
       });
   
-      const unlisten = await listen("scan-progress", (event) => {
-        const { progress, message } = event.payload;
-        setScanProgress(progress || "0%");
-        console.log(`Progress: ${progress}, Message: ${message}`);
+      // Mark the listener as async so we can use 'await' inside it
+      const unlisten = await listen("scan-progress", async (event) => {  // Mark this as async
+        const { scan_id: progress_scan_id, progress, message } = event.payload;  // Capture the scan_id in progress event
+        if (progress_scan_id === scan_id) {  // Ensure this is the correct scan_id
+          setScanProgress(progress || "0%");
+          console.log(`Progress: ${progress}, Message: ${message}, Scan ID: ${progress_scan_id}`);  // Log the correct scan_id
   
-        // Update the progress in the database
-        db.execute(
-          "UPDATE scans SET progress = ? WHERE id = ?",
-          [progress, scan_id]
-        );
+          // Update the progress in the database
+          await db.execute(
+            "UPDATE scans SET progress = ? WHERE id = ?",
+            [progress, progress_scan_id]  // Ensure you're using the correct scan_id
+          );
+        }
       });
   
       // Wait for the scan to complete
@@ -82,7 +108,7 @@ export function NewScan() {
       // Mark the scan as completed in the database
       await db.execute(
         "UPDATE scans SET progress = '100%' WHERE id = ?",
-        [scan_id]
+        [scan_id]  // Use the same scan_id here
       );
   
       unlisten();
@@ -91,8 +117,6 @@ export function NewScan() {
       toast.error("Scan initiation failed. Check the console for details.");
     }
   };
-
-      
 
   return (
     <Dialog>
