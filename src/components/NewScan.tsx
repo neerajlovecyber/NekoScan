@@ -47,12 +47,14 @@ export function NewScan() {
 
   const handleScanStart = async () => {
     try {
-      const currentTime = new Date().toLocaleString();
+      const scan_id = await invoke("start_scan", { script: command });
+  
+      // Insert the scan details into the database here
       await db.execute(
-        "INSERT INTO scans (name, target, profile, time_started, progress) VALUES (?, ?, ?, ?, ?)",
-        [scanName, target, value, currentTime, "0%"]
+        "INSERT INTO scans (id, name, target, profile, time_started, progress) VALUES (?, ?, ?, ?, ?, ?)",
+        [scan_id, scanName, target, value, new Date().toLocaleString(), "0%"]
       );
-
+  
       toast.success(`Scan initiated for ${scanName} on ${target}`, {
         description: `Profile: ${value}`,
         action: {
@@ -60,32 +62,37 @@ export function NewScan() {
           onClick: () => console.log("Scan cancelled"),
         },
       });
-
+  
       const unlisten = await listen("scan-progress", (event) => {
         const { progress, message } = event.payload;
         setScanProgress(progress || "0%");
         console.log(`Progress: ${progress}, Message: ${message}`);
-
-        // If scan is completed, mark it as finished
-        if (message.includes("Scan completed successfully")) {
-          setScanCompleted(true);
-          setScanProgress("100%"); // Ensure progress shows 100% when done
-        }
+  
+        // Update the progress in the database
+        db.execute(
+          "UPDATE scans SET progress = ? WHERE id = ?",
+          [progress, scan_id]
+        );
       });
-
+  
+      // Wait for the scan to complete
       const result = await invoke("start_scan", { script: command });
-
       console.log("Scan result:", result);
-      if (!scanCompleted) {
-        toast.success("Scan completed successfully!");
-      }
-
+  
+      // Mark the scan as completed in the database
+      await db.execute(
+        "UPDATE scans SET progress = '100%' WHERE id = ?",
+        [scan_id]
+      );
+  
       unlisten();
     } catch (error) {
       console.error("Error starting scan:", error);
       toast.error("Scan initiation failed. Check the console for details.");
     }
   };
+
+      
 
   return (
     <Dialog>

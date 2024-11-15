@@ -14,7 +14,7 @@ struct ScanProgress {
 #[tauri::command]
 async fn start_scan(app_handle: tauri::AppHandle, script: String) -> Result<String, String> {
     // Generate a unique scan_id using UUID
-    let scan_id = Uuid::new_v4().to_string();  // This generates a unique scan ID
+    let scan_id = Uuid::new_v4().to_string();
     
     let args: Vec<String> = script.split_whitespace().map(|s| s.to_string()).collect();
 
@@ -29,9 +29,9 @@ async fn start_scan(app_handle: tauri::AppHandle, script: String) -> Result<Stri
 
     let app_handle_clone = app_handle.clone();
     
-    let re = Regex::new(r"(\d+(\.\d+)?)% done").unwrap(); // To capture progress
-    let completion_re = Regex::new(r"Scan completed successfully").unwrap(); // To capture completion message
-    
+    let re = Regex::new(r"(\d+(\.\d+)?)% done").unwrap();
+    let completion_re = Regex::new(r"Scan completed successfully").unwrap();
+
     std::thread::spawn(move || {
         let reader = BufReader::new(stdout);
 
@@ -40,7 +40,7 @@ async fn start_scan(app_handle: tauri::AppHandle, script: String) -> Result<Stri
                 // Check for scan completion
                 if completion_re.is_match(&line) {
                     let event_payload = ScanProgress {
-                        scan_id: scan_id.clone(),  // Attach the unique scan_id to the payload
+                        scan_id: scan_id.clone(),
                         progress: "100".to_string(),
                         message: "Scan completed successfully".to_string(),
                     };
@@ -61,7 +61,7 @@ async fn start_scan(app_handle: tauri::AppHandle, script: String) -> Result<Stri
                         };
 
                         let event_payload = ScanProgress {
-                            scan_id: scan_id.clone(),  // Attach the unique scan_id to the payload
+                            scan_id: scan_id.clone(),
                             progress: final_progress,
                             message: line.clone(),
                         };
