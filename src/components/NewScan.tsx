@@ -217,7 +217,7 @@ export function NewScan() {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleScanStart}>
+          <Button variant="outline"  className="animate-buttonheartbeat rounded-md py-1 text-sm font-semibold text-white inline-flex" onClick={handleScanStart}>
             Start Scan
           </Button>
           
