@@ -1,76 +1,71 @@
-use std::process::{Command, Stdio};
-use std::io::{BufRead, BufReader};
 use tauri::Emitter;
 use regex::Regex;
+use std::process::{Command, Stdio};
+use std::io::{BufRead, BufReader};
+use uuid::Uuid;  // Import UUID
 
 #[derive(Clone, serde::Serialize)]
 struct ScanProgress {
+    scan_id: String,
     progress: String,
     message: String,
 }
 
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
 async fn start_scan(app_handle: tauri::AppHandle, script: String) -> Result<String, String> {
-    let args: Vec<String> = script
-        .split_whitespace()
-        .map(|s| s.to_string())
-        .collect();
+    // Generate a unique scan_id using UUID
+    let scan_id = Uuid::new_v4().to_string();  // This generates a unique scan ID
+    
+    let args: Vec<String> = script.split_whitespace().map(|s| s.to_string()).collect();
 
     let mut command = Command::new("nmap");
-    command.args(["--stats-every", "2s", "-v"]); // Update interval and verbosity
+    command.args(["--stats-every", "2s", "-v"]);
     command.args(&args);
     command.stdout(Stdio::piped());
     command.stderr(Stdio::piped());
 
-    let mut child = command.spawn().map_err(|e| format!("Failed to start nmap: {}", e))?;    
+    let mut child = command.spawn().map_err(|e| format!("Failed to start nmap: {}", e))?;
     let stdout = child.stdout.take().ok_or("Failed to capture stdout")?;
-    
+
     let app_handle_clone = app_handle.clone();
     
-    // Create a regex to extract progress percentage
-    let re = Regex::new(r"(\d+(\.\d+)?)% done").unwrap(); // Matches "65.3% done"
-    let completion_re = Regex::new(r"Scan completed successfully").unwrap(); // Matches the completion message
+    let re = Regex::new(r"(\d+(\.\d+)?)% done").unwrap(); // To capture progress
+    let completion_re = Regex::new(r"Scan completed successfully").unwrap(); // To capture completion message
     
-    // Spawn a thread to process stdout
     std::thread::spawn(move || {
         let reader = BufReader::new(stdout);
 
         for line in reader.lines() {
             if let Ok(line) = line {
-                // Check for scan completion message
+                // Check for scan completion
                 if completion_re.is_match(&line) {
-                    // Emit 100% progress when scan is completed
                     let event_payload = ScanProgress {
+                        scan_id: scan_id.clone(),  // Attach the unique scan_id to the payload
                         progress: "100".to_string(),
                         message: "Scan completed successfully".to_string(),
                     };
                     _ = app_handle_clone.emit("scan-progress", event_payload);
-                    break; // Exit the loop once the scan is complete
+                    break;
                 }
 
-                // Check if the line matches the progress pattern
+                // Check for progress
                 if let Some(caps) = re.captures(&line) {
                     if let Some(percentage) = caps.get(1) {
                         let progress = percentage.as_str().to_string();
 
-                        // Force progress to 100% if it reaches 99.65% or above
+                        // Force progress to 100% if it reaches 99.65 or above
                         let final_progress = if progress.parse::<f64>().unwrap_or(0.0) >= 99.65 {
                             "100".to_string()
                         } else {
                             progress
                         };
-                        
+
                         let event_payload = ScanProgress {
+                            scan_id: scan_id.clone(),  // Attach the unique scan_id to the payload
                             progress: final_progress,
                             message: line.clone(),
                         };
 
-                        // Emit progress update
                         _ = app_handle_clone.emit("scan-progress", event_payload);
                     }
                 }
@@ -78,7 +73,6 @@ async fn start_scan(app_handle: tauri::AppHandle, script: String) -> Result<Stri
         }
     });
 
-    // Wait for the child process to finish
     match child.wait() {
         Ok(status) => {
             if status.success() {
@@ -104,7 +98,7 @@ pub fn run() {
         .plugin(tauri_plugin_persisted_scope::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, start_scan])
+        .invoke_handler(tauri::generate_handler![ start_scan])
         .run(tauri::generate_context!())
         .expect("Error while running Tauri application");
 }
