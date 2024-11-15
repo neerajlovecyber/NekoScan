@@ -19,6 +19,11 @@
    "updater:allow-check",
    "updater:allow-download-and-install",
     "fs:allow-write",
+    "sql:default",
+    "sql:allow-execute",
+    "sql:allow-load",
+    "sql:allow-select",
+    "sql:allow-close",
     {
       "identifier": "shell:allow-execute",
       "allow": [

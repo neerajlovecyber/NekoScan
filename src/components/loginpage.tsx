@@ -3,6 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Command } from '@tauri-apps/plugin-shell';
+import Database from '@tauri-apps/plugin-sql';
+// when using `"withGlobalTauri": true`, you may use
+// const Database = window.__TAURI__.sql;
+const db = await Database.load('mysql://user:pass@host/database');
+
 import {
   Card,
   CardContent,
