@@ -33,20 +33,32 @@ async function checkDatabase() {
   }
 }
 
-// Function to run the scan command and return its output
-const Scan = async (script: string) => {
+// Function to run the scan command and return its output, including real-time progress
+const Scan = async (script: string, setScanProgress: React.Dispatch<React.SetStateAction<string>>) => {
   try {
     const isWindows = navigator.userAgent.includes("Windows");
     const command = isWindows ? 'cmd' : 'sh';
     const args = isWindows
-      ? ['/C', `nmap ${script}`]
-      : ['-c', `nmap ${script}`];
+      ? ['/C', `nmap --stats-every 2s -v ${script}`] // Add --stats-every 2s
+      : ['-c', `nmap --stats-every 2s -v ${script}`]; // Add --stats-every 2s
 
+    // Execute the command
     const result = await Command.create(command, args).execute();
 
-    if (result.stdout) {
-      return result.stdout; // Return scan result
-    }
+    // Split the output by lines and look for percentage matches
+    const output = result.stdout; // Assuming result.stdout contains the full output as a string
+
+    const outputLines = output.split("\n");
+    outputLines.forEach((line) => {
+      const match = line.match(/(\d+)% done/);  // Look for percentage match in the output
+      if (match) {
+        const progress = match[1];
+        console.log(`Scan progress: ${progress}%`) // Log progress
+        setScanProgress(`${progress}%`); // Update progress
+      }
+    });
+
+    return result.stdout; // Return full scan result if needed
   } catch (error) {
     console.error("Scan execution failed:", error);
     toast.error("Scan execution failed");
@@ -87,12 +99,10 @@ export function NewScan() {
         },
       });
 
-      // Execute the scan and log the result here
-      const scanResult = await Scan(command);
-      console.log("Scan output:", scanResult); // Log the scan result here
+      // Execute the scan and track the progress
+      const scanResult = await Scan(command, setScanProgress);
 
-      // Simulate progress (update this based on your actual scan process)
-      setScanProgress("10%");
+      console.log("Scan output:", scanResult); // Log the scan result
 
     } catch (error) {
       console.error("Error starting scan:", error);
@@ -195,6 +205,14 @@ export function NewScan() {
             </Label>
             <div className="bg-gray-800 p-2 rounded text-white col-span-3">
               <code>{command}</code>
+            </div>
+          </div>
+
+          {/* Display the scan progress */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Progress</Label>
+            <div className="bg-gray-800 p-2 rounded text-white col-span-3">
+              <code>{scanProgress}</code>
             </div>
           </div>
         </div>
