@@ -8,6 +8,8 @@ import { Settings } from "@/components/Settings";
 import { Profiles } from "@/components/Profiles";
 import { useState } from "react";
 import { Home } from "./components/Home";
+import { AnimatedGridPattern } from "@/components/ui/animatedbackground";
+import { cn } from "@/lib/utils";
 
 function App() {
   const [activePage, setActivePage] = useState<string>("Home");
@@ -17,7 +19,9 @@ function App() {
   };
 
   return (
+    
     <SidebarProvider>
+      
       <AppSidebar onPageChange={handlePageChange} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 justify-between pr-4">

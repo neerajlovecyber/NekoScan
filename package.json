@@ -36,6 +36,7 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
     "firebase": "^11.0.1",
+    "framer-motion": "^11.11.17",
     "highlight.js": "^11.10.0",
     "install": "^0.13.0",
     "lodash": "^4.17.21",

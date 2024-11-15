@@ -11,6 +11,9 @@ import { useAuthStore } from "@/store/useAuthStore"; // Import the Zustand store
 import { Settings } from "@/components/Settings";
 import { Profiles } from "@/components/Profiles";
 import { Home } from "@/components/Home";
+import { AnimatedGridPattern } from "@/components/ui/animatedbackground";
+import { cn } from "@/lib/utils";
+
 function Main() {
   // Use Zustand store to manage authentication state
   const { isLoggedIn, isGuest, login, continueAsGuest } = useAuthStore();
@@ -58,7 +61,18 @@ function Main() {
           </Routes>
         </Router>
         <Toaster />
+
       </ThemeProvider>
+      <AnimatedGridPattern
+    numSquares={30}
+    maxOpacity={0.1}
+    duration={3}
+    repeatDelay={1}
+    className={cn(
+      "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
+      "inset-x-0 inset-y-[-30%] skew-y-12",
+    )}
+  />
     </React.StrictMode>
   );
 }
