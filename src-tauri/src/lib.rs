@@ -13,7 +13,8 @@ struct ScanProgress {
 
 #[tauri::command]
 async fn start_scan(app_handle: tauri::AppHandle, script: String) -> Result<String, String> {
-    let scan_id = Uuid::new_v4().to_string();
+    // Generate a unique scan_id using UUID
+    let scan_id = Uuid::new_v4().to_string(); // Generate a unique scan ID
 
     let args: Vec<String> = script.split_whitespace().map(|s| s.to_string()).collect();
 
@@ -26,71 +27,56 @@ async fn start_scan(app_handle: tauri::AppHandle, script: String) -> Result<Stri
     let mut child = command.spawn().map_err(|e| format!("Failed to start nmap: {}", e))?;
     let stdout = child.stdout.take().ok_or("Failed to capture stdout")?;
 
+    // Clone scan_id before moving it into the closure
+    let scan_id_clone = scan_id.clone(); // This ensures you can use scan_id after moving it
+
     let app_handle_clone = app_handle.clone();
-    let scan_id_clone = scan_id.clone();
+    let progress_re = Regex::new(r"(\d+(\.\d+)?)% done").unwrap(); // Regex for progress updates
+    let done_re = Regex::new(r"Nmap done").unwrap(); // Regex for scan completion
 
-    let re = Regex::new(r"(\d+(\.\d+)?)% done").unwrap();
-    let completion_re = Regex::new(r"Scan completed successfully").unwrap();
-    let scanning_re = Regex::new(r"Scanning").unwrap();
-
+    // Spawn a new thread to monitor the output
     std::thread::spawn(move || {
         let reader = BufReader::new(stdout);
-        let mut last_progress = String::new();
 
         for line in reader.lines() {
             if let Ok(line) = line {
-                let mut event_payload = None;
-
-                if let Some(caps) = re.captures(&line) {
-                    if let Some(percentage) = caps.get(1) {
-                        let progress = percentage.as_str().to_string();
-                        let final_progress = if progress.parse::<f64>().unwrap_or(0.0) >= 99.65 {
-                            "100".to_string()
-                        } else {
-                            progress
-                        };
-
-                        if final_progress != last_progress {
-                            last_progress = final_progress.clone();
-                            event_payload = Some(ScanProgress {
-                                scan_id: scan_id_clone.clone(),
-                                progress: format!("{}%", final_progress),
-                                message: line.clone(),
-                            });
-                        }
-                    }
-                } else if completion_re.is_match(&line) {
-                    event_payload = Some(ScanProgress {
-                        scan_id: scan_id_clone.clone(),
-                        progress: "100%".to_string(),
-                        message: "Scan completed successfully".to_string(),
-                    });
-                } else if scanning_re.is_match(&line) {
-                    event_payload = Some(ScanProgress {
-                        scan_id: scan_id_clone.clone(),
-                        progress: last_progress.clone() + "%",
-                        message: line.clone(),
-                    });
+                // Check for scan completion
+                if done_re.is_match(&line) {
+                    println!("Completion detected: Nmap done");
+                    let event_payload = ScanProgress {
+                        scan_id: scan_id_clone.clone(), // Use the cloned scan_id here
+                        progress: "100".to_string(),
+                        message: "Nmap done".to_string(),
+                    };
+                    _ = app_handle_clone.emit("scan-progress", event_payload);
+                    break;
                 }
 
-                if let Some(payload) = event_payload {
-                    _ = app_handle_clone.emit("scan-progress", payload);
+                // Check for progress updates
+                if let Some(caps) = progress_re.captures(&line) {
+                    if let Some(percentage) = caps.get(1) {
+                        let progress = percentage.as_str().to_string();
+                        println!("Progress for Scan ID {}: {}%", scan_id_clone, progress);
+
+                        let event_payload = ScanProgress {
+                            scan_id: scan_id_clone.clone(), // Use the cloned scan_id here
+                            progress,
+                            message: line.clone(),
+                        };
+
+                        _ = app_handle_clone.emit("scan-progress", event_payload);
+                    }
                 }
             }
         }
-
-        let final_event = ScanProgress {
-            scan_id: scan_id_clone.clone(),
-            progress: "100%".to_string(),
-            message: "Scan completed".to_string(),
-        };
-        _ = app_handle_clone.emit("scan-progress", final_event);
     });
 
+    // Wait for the nmap process to complete
     match child.wait() {
         Ok(status) => {
             if status.success() {
-                Ok(scan_id)
+                // Return the scan_id on success
+                Ok(scan_id) // Send back the scan_id to the frontend
             } else {
                 Err(format!("Scan failed with status: {}", status))
             }
@@ -112,7 +98,7 @@ pub fn run() {
         .plugin(tauri_plugin_persisted_scope::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![start_scan])
+        .invoke_handler(tauri::generate_handler![start_scan]) // Add the command handler
         .run(tauri::generate_context!())
         .expect("Error while running Tauri application");
 }
