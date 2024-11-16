@@ -89,15 +89,13 @@ export function NewScan() {
   const command = `nmap ${value} ${target}`;
 
   useEffect(() => {
-    initializeDatabase();
-    loadExistingScans();
-      const results =  db.select("SELECT * FROM scans");
-      console.log("Scans in database:", results);
-    // Set up the progress event listener
     let unsubscribe;
+    
     const setupListener = async () => {
       unsubscribe = await listen("scan-progress", async (event) => {
         const { scan_id: progressId, progress, message } = event.payload;
+  
+        let transactionStarted = false;
         
         try {
           const progressPercentage = `${progress}%`;
@@ -112,14 +110,29 @@ export function NewScan() {
             });
             return updated;
           });
-
-          await db.execute(
+  
+          console.log("Updating database with progress for scan", progressId, progressPercentage);
+  
+          // Start a new transaction only if one is not already started
+          await db.execute('BEGIN TRANSACTION');
+          transactionStarted = true;
+          
+          // Execute the update in the database
+          const updateResult = await db.execute(
             "UPDATE scans SET progress = ?, status = ? WHERE id = ?",
             [progressPercentage, progress === "100" ? "completed" : "running", progressId]
           );
           
-          console.log(`Updated progress for scan ${progressId}: ${progressPercentage}`);
+          console.log(`Database update result for scan ${progressId}:`, updateResult);
+  
+          // Fetch the updated scan to verify the progress was updated
+          const updatedScan = await db.select("SELECT * FROM scans WHERE id = ?", [progressId]);
+          console.log("Updated scan from DB:", updatedScan);
+  
+          // Commit the transaction
+          await db.execute('COMMIT');
           
+          // If scan is completed, remove from active scans and show success toast
           if (progress === "100") {
             toast.success(`Scan ${progressId} completed`);
             setActiveScans(prev => {
@@ -131,18 +144,24 @@ export function NewScan() {
         } catch (error) {
           console.error("Failed to update scan progress:", error);
           toast.error(`Failed to update progress for scan ${progressId}`);
+          
+          // If the transaction was started, roll it back
+          if (transactionStarted) {
+            await db.execute('ROLLBACK');
+          }
         }
       });
     };
-
+  
     setupListener();
-
+  
     return () => {
       if (unsubscribe) {
         unsubscribe();
       }
     };
   }, []);
+  
 
   const loadExistingScans = async () => {
     try {
@@ -289,6 +308,7 @@ export function NewScan() {
             >
               Start Scan
             </Button>
+            
           </DialogFooter>
         </DialogContent>
       </Dialog>

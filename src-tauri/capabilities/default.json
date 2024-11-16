@@ -22,6 +22,7 @@
     "sql:allow-execute",
     "sql:allow-load",
     "sql:allow-select",
+    
     "sql:allow-close",
     "shell:allow-spawn",
     "shell:allow-kill",
