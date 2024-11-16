@@ -29,159 +29,270 @@ async function initializeDatabase() {
         target TEXT,
         profile TEXT,
         time_started TEXT,
-        progress TEXT
+        progress TEXT,
+        status TEXT DEFAULT 'running'
       );
     `);
-    toast.success("Database initialized successfully.");
+    
+    console.log("Database initialized successfully.");
+    
   } catch (error) {
     console.error("Failed to initialize database:", error);
     toast.error("Database initialization failed.");
   }
 }
 
+function ActiveScanCard({ scanId, scanInfo }) {
+  return (
+    <div className="bg-card border rounded-lg p-4 shadow-sm">
+      <div className="flex justify-between items-center mb-2">
+        <div className="font-medium">{scanInfo.name || scanId}</div>
+        <div className="text-sm text-muted-foreground">{scanInfo.progress}</div>
+      </div>
+      <div className="text-sm text-muted-foreground mb-2">
+        Target: {scanInfo.target}
+      </div>
+      <div className="w-full bg-secondary rounded-full h-2">
+        <div
+          className="bg-primary h-2 rounded-full transition-all duration-300"
+          style={{ width: scanInfo.progress }}
+        />
+      </div>
+      <div className="text-xs text-muted-foreground mt-2">{scanInfo.message}</div>
+    </div>
+  );
+}
+
+function ActiveScans({ activeScans }) {
+  if (activeScans.size === 0) return null;
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold">Active Scans</h2>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {Array.from(activeScans).map(([scanId, scanInfo]) => (
+          <ActiveScanCard key={scanId} scanId={scanId} scanInfo={scanInfo} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function NewScan() {
   const [open, setOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [value, setValue] = useState("");
   const [target, setTarget] = useState("");
   const [scanName, setScanName] = useState("");
-  const [scanProgress, setScanProgress] = useState("0%");
-  const [scanCompleted, setScanCompleted] = useState(false);
+  const [activeScans, setActiveScans] = useState(new Map());
 
   const command = `nmap ${value} ${target}`;
 
   useEffect(() => {
     initializeDatabase();
-
-    const fetchScans = async () => {
-      try {
-        const results = await db.select("SELECT * FROM scans");
-        console.log("Scans in database:", results);
-      } catch (error) {
-        console.error("Failed to fetch scans:", error);
-      }
-    };
-
-    fetchScans();
-  }, []);
-
-  const handleScanStart = async () => {
-    try {
-      // Get the response object from the backend, which should include scan_id
-      const response = await invoke("start_scan", { script: command });
-
-      // Debugging: Log the full response to inspect it
-      console.log("Full response:", response);
-
-      // Extract the scan_id from the response object
-      const scan_id = response;
-
-      const startTime = new Date().toLocaleString();
-
-      // Debugging: Log the extracted scan_id
-      console.log("Extracted scan ID:", scan_id);
-
-      // Check if the scan_id already exists in the database
-      const existingScans = await db.select("SELECT id FROM scans WHERE id = ?", [scan_id]);
-      if (existingScans.length > 0) {
-        toast.error("Scan ID conflict: A scan with this ID already exists.");
-        return;
-      }
-
-      // Insert the new scan into the database
-      await db.execute(
-        "INSERT INTO scans (id, name, target, profile, time_started, progress) VALUES (?, ?, ?, ?, ?, ?)",
-        [scan_id, scanName, target, value, startTime, "0%"]
-      );
-
-      toast.success(`Scan initiated: ${scanName} targeting ${target}.`);
-
-      // Listen for scan progress events
-      const unlisten = await listen("scan-progress", async (event) => {
+    loadExistingScans();
+      const results =  db.select("SELECT * FROM scans");
+      console.log("Scans in database:", results);
+    // Set up the progress event listener
+    let unsubscribe;
+    const setupListener = async () => {
+      unsubscribe = await listen("scan-progress", async (event) => {
         const { scan_id: progressId, progress, message } = event.payload;
-        if (progressId === scan_id) {
-          setScanProgress(progress);
-          console.log(`Scan Progress [${progressId}]: ${progress} - ${message}`);
+        
+        try {
+          const progressPercentage = `${progress}%`;
+          
+          setActiveScans(prev => {
+            const updated = new Map(prev);
+            const currentScan = updated.get(progressId) || {};
+            updated.set(progressId, {
+              ...currentScan,
+              progress: progressPercentage,
+              message,
+            });
+            return updated;
+          });
 
-          // Update the scan progress in the database
-          await db.execute("UPDATE scans SET progress = ? WHERE id = ?", [progress, progressId]);
-
-          if (progress === "100%") {
-            setScanCompleted(true);
-            toast.success(`Scan ${scanName} completed.`);
-            // Update the database with completion status
-            await db.execute("UPDATE scans SET progress = '100%' WHERE id = ?", [progressId]);
+          await db.execute(
+            "UPDATE scans SET progress = ?, status = ? WHERE id = ?",
+            [progressPercentage, progress === "100" ? "completed" : "running", progressId]
+          );
+          
+          console.log(`Updated progress for scan ${progressId}: ${progressPercentage}`);
+          
+          if (progress === "100") {
+            toast.success(`Scan ${progressId} completed`);
+            setActiveScans(prev => {
+              const updated = new Map(prev);
+              updated.delete(progressId);
+              return updated;
+            });
           }
+        } catch (error) {
+          console.error("Failed to update scan progress:", error);
+          toast.error(`Failed to update progress for scan ${progressId}`);
         }
       });
+    };
+
+    setupListener();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  const loadExistingScans = async () => {
+    try {
+      const runningScans = await db.select(
+        "SELECT * FROM scans WHERE status = 'running'"
+      );
+      
+      const scansMap = new Map();
+      runningScans.forEach(scan => {
+        scansMap.set(scan.id, {
+          name: scan.name,
+          target: scan.target,
+          progress: scan.progress,
+          message: "Scan in progress...",
+        });
+      });
+      
+      setActiveScans(scansMap);
+    } catch (error) {
+      console.error("Failed to load existing scans:", error);
+    }
+  };
+
+  const handleScanStart = async () => {
+    if (!target.trim() || !value || !scanName.trim()) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    try {
+      const scan_id = await invoke("start_scan", { script: command });
+      const startTime = new Date().toLocaleString();
+
+      setActiveScans(prev => {
+        const updated = new Map(prev);
+        updated.set(scan_id, {
+          name: scanName,
+          target: target,
+          progress: "0%",
+          message: "Starting scan...",
+        });
+        return updated;
+      });
+
+      await db.execute(
+        "INSERT INTO scans (id, name, target, profile, time_started, progress, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [scan_id, scanName, target, value, startTime, "0%", "running"]
+      );
+      
+      toast.success(`Scan initiated: ${scanName} targeting ${target}`);
+      
+      // Reset form and close dialog
+      setScanName("");
+      setTarget("");
+      setValue("");
+      setDialogOpen(false);
+      
+
     } catch (error) {
       console.error("Scan initiation failed:", error);
-      toast.error("Failed to start the scan. See the console for details.");
+      toast.error("Failed to start the scan");
     }
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button className="animate-buttonheartbeat rounded-md py-1 text-sm font-semibold text-white inline-flex">
-          <Search /> New Scan
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px]">
-        <DialogHeader>
-          <DialogTitle>Create a new scan</DialogTitle>
-          <DialogDescription>Configure your scan and start it here.</DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">Name</Label>
-            <Input id="name" value={scanName} onChange={(e) => setScanName(e.target.value)} className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="target" className="text-right">Target</Label>
-            <Input id="target" value={target} onChange={(e) => setTarget(e.target.value)} className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="profile" className="text-right">Profile</Label>
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-[200px] justify-between col-span-3">
-                  {value ? profiles.find((p) => p.value === value)?.label : "Select profile..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <UICommand>
-                  <CommandInput placeholder="Search profile..." />
-                  <CommandList>
-                    <CommandEmpty>No profile found.</CommandEmpty>
-                    <CommandGroup>
-                      {profiles.map((profile) => (
-                        <CommandItem key={profile.value} value={profile.value} onSelect={() => {
-                          setValue(profile.value);
-                          setOpen(false);
-                        }}>
-                          <Check className={value === profile.value ? "mr-2 opacity-100" : "mr-2 opacity-0"} />
-                          {profile.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </UICommand>
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Command</Label>
-            <div className="bg-gray-800 p-2 rounded text-white col-span-3"><code>{command}</code></div>
-          </div>
-
-        </div>
-        <DialogFooter>
-          <Button onClick={handleScanStart} className="bg-teal-800 hover:bg-green-700" disabled={scanCompleted}>
-            Start Scan
+    <div className="space-y-6">
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogTrigger asChild>
+          <Button className="animate-buttonheartbeat rounded-md py-1 text-sm font-semibold text-white inline-flex">
+            <Search className="mr-2 h-4 w-4" /> New Scan
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[525px]">
+          <DialogHeader>
+            <DialogTitle>Create a new scan</DialogTitle>
+            <DialogDescription>Configure your scan and start it here.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">Name</Label>
+              <Input 
+                id="name" 
+                value={scanName} 
+                onChange={(e) => setScanName(e.target.value)} 
+                className="col-span-3" 
+                placeholder="Enter scan name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="target" className="text-right">Target</Label>
+              <Input 
+                id="target" 
+                value={target} 
+                onChange={(e) => setTarget(e.target.value)} 
+                className="col-span-3" 
+                placeholder="Enter target IP or hostname"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="profile" className="text-right">Profile</Label>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-[200px] justify-between col-span-3">
+                    {value ? profiles.find((p) => p.value === value)?.label : "Select profile..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <UICommand>
+                    <CommandInput placeholder="Search profile..." />
+                    <CommandList>
+                      <CommandEmpty>No profile found.</CommandEmpty>
+                      <CommandGroup>
+                        {profiles.map((profile) => (
+                          <CommandItem 
+                            key={profile.value} 
+                            value={profile.value} 
+                            onSelect={() => {
+                              setValue(profile.value);
+                              setOpen(false);
+                            }}
+                          >
+                            <Check className={value === profile.value ? "mr-2 opacity-100" : "mr-2 opacity-0"} />
+                            {profile.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </UICommand>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Command</Label>
+              <div className="bg-secondary p-2 rounded text-foreground col-span-3">
+                <code>{command}</code>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              onClick={handleScanStart} 
+              className="bg-primary hover:bg-primary/90"
+            >
+              Start Scan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+    </div>
   );
 }
