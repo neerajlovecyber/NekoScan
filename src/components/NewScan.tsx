@@ -174,10 +174,7 @@ export function NewScan() {
             <Label className="text-right">Command</Label>
             <div className="bg-gray-800 p-2 rounded text-white col-span-3"><code>{command}</code></div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Progress</Label>
-            <div className="col-span-3 font-bold text-xl">{scanProgress}</div>
-          </div>
+
         </div>
         <DialogFooter>
           <Button onClick={handleScanStart} className="bg-teal-800 hover:bg-green-700" disabled={scanCompleted}>
